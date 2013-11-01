@@ -102,12 +102,12 @@ class Samfilter(object):
         }
         
         self.schema_names = {
-                            'HD': {'name':'header',   'params': self.params_header},
+                            'HD': {'name':'header',   'params': self.params_header,   'list': False},
                             'SQ': {'name':'sequence', 'params': self.params_sequence, 'list': True},
                             'RG': {'name':'group',    'params': self.params_group,    'list': True},
                             'PG': {'name':'program',  'params': self.params_program,  'list': True},
-                            'CO': {'name':'comment',  'params': self.params_comment},
-                            }
+                            'CO': {'name':'comment',  'params': self.params_comment,  'list': True},
+        }
 
         self.suffixes = ('.sam','.bam', '.tam')
         
@@ -196,36 +196,43 @@ class Samfilter(object):
         :param instance: sam file.
         :param metadata: sam file header as a multi-level dictionary.
         """
-        logger.debug('saveMetadata')
+        logger.debug('starting!')
         
-        # save each header line as a parameter set
+        # save each line as a parameter set
         for key, line in metadata.items():
             # get the schema for this line
             schema_mapping = self.schema_names[key]
             logger.debug("schema mapping for key[" + key + "] = " + str(schema_mapping))
-            
             schema = self.getSchema(schema_mapping['name'])
             logger.debug("schema for key[" + key + "] = " + str(schema))
             
             # get the parameter set for this line
             parameter_names = self.getParameterNames(schema, schema_mapping['params'])
             logger.debug("parameter names for key[" + key + "] count = %d " % len(parameter_names))
-     
+            
             # create datafile parameter set
             logger.debug('schema_mapping[\'list\'] = ' + str(schema_mapping['list']))
-            
+
             if not schema_mapping['list']:
                 logger.debug('create parameterset for line = '  + str(line))
                 parameter_set = DatafileParameterSet(schema=schema,dataset_file=instance)
                 parameter_set.save()
-                self.createDatafileParameters(schema_mapping['params'], parameter_set, parameter_names,  line)
+                self.createDatafileParameters(schema_mapping['params'], parameter_set, parameter_names,  
+                                              line)
             else:
                 logger.debug('line = ' + str(line))
                 for item in line:
                     logger.debug('create parameterset for item = '  + str(item))
                     parameter_set = DatafileParameterSet(schema=schema,dataset_file=instance)
                     parameter_set.save()
-                    self.createDatafileParameters(schema_mapping['params'], parameter_set, parameter_names,  item)
+                    if key == 'CO':
+                        self.createDatafileParameters(schema_mapping['params'], parameter_set, 
+                                                      parameter_names,  
+                                                      {'CO': item, })
+                    else:
+                        self.createDatafileParameters(schema_mapping['params'], parameter_set, 
+                                                      parameter_names,  
+                                                      item)
     
         # finished with saveMetadata
         return
@@ -310,28 +317,48 @@ class Samfilter(object):
         for key, values in tags.items():
             logger.debug('tags key[' + str(key) + '] values[' + str(values) + ']')
             
-            # is the tag in the metadata 
-            param = DatafileParameter()
-            param.parameterset = paramset
+            # get the parametername
             for item in paramnames:
                 if item.name == values.get('name'):
-                    param.name = item
-                    break
-                
+                    pname = item
+                    logger.debug('param.name = ' + str(pname))
+            
+            # create the datafile parameter
             if metadata.has_key(key):
                 # set value from metadata
-                param.set_value(metadata.get(key))
-                param.save()
+                param = DatafileParameter(parameterset=paramset,name=pname)
+                param = self.setParameterValue(param,pname,metadata.get(key))
+                logger.debug('parameter = ' + str(param))
+
             elif values.has_key('default'):
                 # check default provided
-                param.set_value(values.get('default'))
-                param.save()
+                param = DatafileParameter(parameterset=paramset,name=pname)
+                param = self.setParameterValue(param,pname,values.get('default'))
+                logger.debug('parameter = ' + str(param) + ' (default)')
+
             elif values.get('required'):
                 # check if required
                 raise
 
         # finished
-        return        
+        return   
+    
+    # ----------------------------------
+    # sets the parameter value and saves
+    # ----------------------------------
+    def setParameterValue(self, parameter, pname, value):   
+        
+        if pname.isNumeric():
+            parameter.numerical_value = value
+        elif pname.isDateTime():
+            parameter.datetime_value = value
+        else:
+            parameter.string_value = value
+
+        parameter.save()
+        
+        return parameter
+    
 
 # -----------------
 # create the filter

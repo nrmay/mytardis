@@ -1,8 +1,9 @@
-'''
+"""
 Created on Oct 30, 2013
 
-@author: nmay
-'''
+.. moduleauthor:: Nick May <nicholasmay2@gmail.com>
+
+"""
 import unittest
 from os import path
 from compare import expect
@@ -12,9 +13,10 @@ from django.test import TestCase
 from tardis.tardis_portal.filters.samfiles import Samfilter 
 
 from tardis.tardis_portal.models import User, UserProfile, Location, Experiment, Dataset, \
-    ObjectACL, Dataset_File, Replica, ParameterName
+    ObjectACL, Dataset_File, Replica
+from tardis.tardis_portal.models import Schema, DatafileParameterSet
+from tardis.tardis_portal.models import ParameterName, DatafileParameter
 from tardis.tardis_portal.tests.test_download import get_size_and_sha512sum 
-from tardis.tardis_portal.models.parameters import Schema
 
 
 class SAMFormatTestCase(TestCase):
@@ -78,25 +80,45 @@ class SAMFormatTestCase(TestCase):
         self.datafiles = [create_datafile(i) for i in (1,2)]
         
     def tearDown(self):
-        pass
+        # DatafileParameterSet, Parameters
+        params = DatafileParameter.objects.all()
+        for param in params:
+            param.delete()
+        dfpsets = DatafileParameterSet.objects.all()
+        for pset in dfpsets:
+            pset.delete()
+         
+        # delete all Schemas, ParameterNames
+        schemas = Schema.objects.all()
+        for schema in schemas:
+            pnames = ParameterName.objects.filter(schema=schema)
+            for pname in pnames:
+                pname.delete()                                       
+            schema.delete()
+ 
+        # finished
+        return
 
+    # ------------------------------------
+    # verify the schema namespace
+    # ------------------------------------
     def testSchemaNamespace(self):
         # test small sam file: with one HD and SQ lines
         samformat = 'SAMFORMAT'
         version="6f8dfe4"
         schema = 'http://mytardis.org/samformat/noend'
         fullname = schema + "/" + version + "/"
-        
+         
         # run filter
         Samfilter(samformat,schema)(None, instance=self.datafiles[0])
-        
+         
         # get datafile
         datafile = Dataset_File.objects.get(id=self.datafiles[0].id)
         self.assertEqual(datafile.id,self.datafiles[0].id,"datafile id not matched!")
-        
+         
         # Check that two schemas were created
         print "schema count = %d " % Schema.objects.all().count()
-        
+         
         # check schemas
         schemas = Schema.objects.filter(namespace__startswith=fullname)
         self.assertEqual(schemas.count(),2,"schema count not matched!")
@@ -106,10 +128,13 @@ class SAMFormatTestCase(TestCase):
         self.assertEqual(schemas.count(),1,"schema for sequence count not matched!")   
         schemas = Schema.objects.filter(namespace__exact=fullname + 'group')
         self.assertEqual(schemas.count(),0,"schema for group count not matched!")
-        
+         
         # finished
-        return
+        return     
 
+    # ------------------------------------
+    # verify a small header 
+    # ------------------------------------
     def testSmallHeader(self):
         # test small sam file: with one HD and SQ lines
         samformat = 'SAMFORMAT'
@@ -155,11 +180,15 @@ class SAMFormatTestCase(TestCase):
             
             # Check all the expected parameters are there
             psm = pset[0]
-            expect(psm.get_param('version', True)).to_equal('1.1')
-    
+            pname = 'format'
+            expect(psm.get_param(pname).string_value).to_equal('1.0')
+        
                        
+        except DatafileParameter.DoesNotExist:
+            self.fail('DatafileParameter[name=\'' + pname + '\'] not found')    
+    
         except Schema.DoesNotExist:
-            self.fail('schema[' + schemaname + '] failed')    
+            self.fail('Schema[\'' + schemaname + '\'] not found')    
             
         # check sequence line
         try:
@@ -184,8 +213,19 @@ class SAMFormatTestCase(TestCase):
             print 'schema[' + schemaname + '] parameter names matched'
             
             # check parameter sets
-            # TODO: implement
+            pset = datafile.getParameterSets().filter(schema__exact=schema)
+            self.assertEqual(pset.count(),1,"count of sequence parametersets not matched!")
             
+            # Check all the expected parameters are there
+            psm = pset[0]
+            pname = 'length'
+            expect(psm.get_param(pname).numerical_value).to_equal(48297693)
+            pname = 'name'
+            expect(psm.get_param(pname).string_value).to_equal('2')
+                 
+        except DatafileParameter.DoesNotExist:
+            self.fail('DatafileParameter[name=\'' + pname + '\'] not found')    
+    
         except Schema.DoesNotExist:
             self.fail('check schema[' + schemaname + '] failed')
 
@@ -203,125 +243,167 @@ class SAMFormatTestCase(TestCase):
         # finished testSmallHeader
         return
 
+    # ------------------------------------
+    # verify a large header with all lines
+    # ------------------------------------
     def testLargeHeader(self):
         # test small sam file: with one HD and SQ lines
         samformat = 'SAMFORMAT'
         version="6f8dfe4"
         schema = 'http://mytardis.org/samformat/large/'
         fullname = schema + version + "/"
-        
+         
         # run filter
         Samfilter(samformat,schema)(None, instance=self.datafiles[1])
-        
+         
+                # get datafile
+        datafile = Dataset_File.objects.get(id=self.datafiles[1].id)
+        self.assertEqual(datafile.id,self.datafiles[1].id,"datafile id not matched!") 
+         
         # Check that schemas were created
         print "schema count = %d " % Schema.objects.all().count()
-        
+        for item in Schema.objects.all():
+            print 'Found Schema = ' + str(item)
+            for name in ParameterName.objects.filter(schema=item):
+                print'   Found ParameterName = ' + str(name)
+         
         # check schemas
         schemas = Schema.objects.filter(namespace__startswith=fullname)
         self.assertEqual(schemas.count(),5,"schema count not matched!")
-                
+                 
         # check header line
         try:
             # check schema
             schemaname = fullname + 'header'
             schema = Schema.objects.get(namespace__exact=schemaname)
             print 'schema[' + schemaname + '] exists'
+           
+            # check parameter sets
+            pset = datafile.getParameterSets().filter(schema__exact=schema)
+            self.assertEqual(pset.count(),1,"count of sequence parametersets not matched!")
             
-            # check header parameter names
-            param_names = ParameterName.objects.filter(schema=schema)
-            expect(param_names.count()).to_equal(2)
-          
-            # check DatafileParameterSet
-            # TODO: implement
-            
-             
+            # Check all the expected parameters are there
+            psm = pset[0]
+            pname = 'format'
+            expect(psm.get_param(pname).string_value).to_equal('1.0')
+            pname = 'sorting'
+            try:
+                psm.get_param(pname)
+                self.fail('DatafileParameter[name=\'' + pname + '\'] found in error.')
+            except DatafileParameter.DoesNotExist:
+                print 'ok! missing DatafileParameter[name=\'' + pname + '\']  expected.'
+              
+        except DatafileParameter.DoesNotExist:
+            self.fail('DatafileParameter[name=\'' + pname + '\'] not found')    
+    
         except Schema.DoesNotExist:
             self.fail('schema[' + schemaname + '] failed')    
-            
+             
         # check sequence line
         try:
             # check schema 
             schemaname = fullname + 'sequence'
             schema = Schema.objects.get(namespace__exact=schemaname)
             print 'schema[' + schemaname + '] exists'
-
-            # check sequence parameter names
-            param_names = ParameterName.objects.filter(schema=schema)
-            expect(param_names.count()).to_equal(6)
+             
+            # check parameter sets
+            pset = datafile.getParameterSets().filter(schema__exact=schema)
+            self.assertEqual(pset.count(),2,"count of sequence parametersets not matched!")
             
-            # check DatafileParameterSet
-            # TODO: implement
-          
+            # Check all the expected parameters are there
+            psm = pset[0]
+            pname = 'name'
+            pvalue = psm.get_param(pname).string_value
+            pname = 'length'
+            if pvalue == 'chr1':
+                expect(psm.get_param(pname).numerical_value).to_equal(1575)
+            elif pvalue == 'chr2':
+                expect(psm.get_param(pname).numerical_value).to_equal(1584)
+            else:
+                self.fail('unknown sequence name[' + pvalue + '] found!')
+                  
+        except DatafileParameter.DoesNotExist:
+            self.fail('DatafileParameter[name=\'' + pname + '\'] not found')    
+           
         except Schema.DoesNotExist:
             self.fail('schema[' + schemaname + '] failed')
-
+ 
         # check group line
         try:
             # check schema 
             schemaname = fullname + 'group'
             schema = Schema.objects.get(namespace__exact=schemaname)
             print 'schema[' + schemaname + '] exists'
-
+ 
             # check sequence parameter names
             param_names = ParameterName.objects.filter(schema=schema)
             expect(param_names.count()).to_equal(12)
             param = param_names.get(name__exact='date')
             expect(param.full_name).to_equal('Run Date')
             expect(param.data_type).to_equal(ParameterName.DATETIME)
-           
+            
             # check DatafileParameterSet
             # TODO: implement
-          
+           
         except Schema.DoesNotExist:
             self.fail('schema[' + schemaname + '] failed')
-
+ 
         # check program line
         try:
             # check schema 
             schemaname = fullname + 'program'
             schema = Schema.objects.get(namespace__exact=schemaname)
             print 'schema[' + schemaname + '] exists'
-
+ 
             # check sequence parameter names
             param_names = ParameterName.objects.filter(schema=schema)
             expect(param_names.count()).to_equal(5)
-          
+           
             # check DatafileParameterSet
             # TODO: implement
-            
+             
         except Schema.DoesNotExist:
             self.fail('schema[' + schemaname + '] failed')
-
+ 
         # check comment line
         try:
             # check schema 
             schemaname = fullname + 'comment'
             schema = Schema.objects.get(namespace__exact=schemaname)
             print 'schema[' + schemaname + '] exists'
-
+ 
             # check sequence parameter names
             param_names = ParameterName.objects.filter(schema=schema)
             expect(param_names.count()).to_equal(1)
-          
-            # check DatafileParameterSet
-            # TODO: implement
             
+            # check parameter sets
+            pset = datafile.getParameterSets().filter(schema__exact=schema)
+            self.assertEqual(pset.count(),2,"count of comment parametersets not matched!")
+            
+            # Check all the expected parameters are there
+            pname = 'comment'
+            expect(pset[0].get_param(pname).string_value).to_equal('this is a comment')
+            expect(pset[1].get_param(pname).string_value).to_equal('this is another comment')
+              
+        except DatafileParameter.DoesNotExist:
+            self.fail('DatafileParameter[name=\'' + pname + '\'] not found')   
+             
         except Schema.DoesNotExist:
             self.fail('schema[' + schemaname + '] does not exist')
-
-
-
+ 
+ 
+ 
         # check parameter sets
         dataset = Dataset.objects.get(id=self.dataset.id)
         expect(dataset.getParameterSets().count()).to_equal(0)
-
-
+ 
+ 
         # Check we won't create a duplicate dataset
         Samfilter(samformat,schema)(None, instance=self.datafiles[1])
         dataset = Dataset.objects.get(id=self.dataset.id)
         expect(dataset.getParameterSets().count()).to_equal(0)
-        
-
+         
+ 
         # finished testSmallHeader
         return
 
