@@ -51,6 +51,7 @@ setup(
         'PyYAML==3.10',
         'django-tastypie==0.9.16-tzfix',
         #'pygraphviz',  # for automatic diagram generation for the docs
+        'pysam==0.7.5', # for the SAM/BAM file filter
     ],
     dependency_links=[
         'https://github.com/grischa/django-tastypie/tarball/testing-mytardis-deployment#egg=django-tastypie-0.9.16-tzfix',  # noqa
