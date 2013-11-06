@@ -2,10 +2,13 @@ from tardis.settings_changeme import *
 from os import listdir
 import logging
 
+import south.logger
+logging.getLogger('south').setLevel(logging.INFO)
+
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
+TEMPLATE_DEBUG = False
 
 DATABASES = {
     'default': {
@@ -89,7 +92,7 @@ LDAP_BASE = 'dc=example, dc=com'
 LDAP_USER_BASE = 'ou=People, ' + LDAP_BASE
 LDAP_GROUP_BASE = 'ou=Group, ' + LDAP_BASE
 
-SYSTEM_LOG_LEVEL = logging.DEBUG
+SYSTEM_LOG_LEVEL = logging.WARN
 MODULE_LOG_LEVEL = logging.DEBUG
 
 SYSTEM_LOG_FILENAME = 'request-test.log'

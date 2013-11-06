@@ -153,6 +153,8 @@ class Samfilter(object):
             if (metadata != None):
                 self.saveMetadata(instance, metadata)
             
+            self.printDatafileMetadata(instance)
+            
         except Exception, e:
             # if anything goes wrong, log it in tardis.log and exit
             logger.info(e)
@@ -359,6 +361,50 @@ class Samfilter(object):
         
         return parameter
     
+
+    # --------------------------------------------
+    # print schema and parametersets for datafile
+    # --------------------------------------------
+    def printDatafileMetadata(self, target):
+        '''Print the Metadata for a Datafile
+            Including: Schemas, ParameterNames, ParameterSets, and Parameters.
+            
+        :param target: the datafile.
+        '''
+
+        logger.debug('------------------------------------------------------------------')
+        logger.debug('datafile id = ' + str(target.id))
+        logger.debug('   filename = ' + str(target.filename))
+        
+        # parameter sets
+        psets = target.getParameterSets()
+        logger.debug('parameter sets:')
+        logger.debug('   count = ' + str(len(psets)))
+        for item in psets:
+            logger.debug('   parameter set id = ' + str(item.id))
+            schema = item.schema
+            logger.debug('      schema id = ' + str(schema.id))
+            logger.debug('         type = ' + str(schema.type))
+            logger.debug('         namespace = ' + str(schema.namespace))
+            pnames = list(ParameterName.objects.filter(schema=schema))
+            logger.debug('         parameter names count = ' + str(len(pnames)))
+            for pn in pnames:
+                logger.debug('            name = ' + str(pn)) 
+            params = DatafileParameter.objects.filter(parameterset=item)
+            logger.debug('      parameters count = ' + str(len(params)))
+            for ps in params:
+                logger.debug('         param id = ' + str(ps.id))
+                logger.debug('            name  = ' + str(ps.name.name))
+                if ps.datetime_value:
+                    logger.debug('            value = ' + str(ps.datetime_value))
+                elif ps.numerical_value:
+                    logger.debug('            value = ' + str(ps.numerical_value))
+                else:
+                    logger.debug('            value = ' + ps.string_value)
+                     
+        # finished
+        logger.debug('------------------------------------------------------------------')
+        return
 
 # -----------------
 # create the filter
