@@ -98,7 +98,7 @@ class Samfilter(object):
         }
         
         self.params_comment = {
-            'CO': {'name': 'comment',  'full_name': 'Comment Line'},
+            'CO': {'name': 'comment',  'full_name': 'Comment'},
         }
         
         self.schema_names = {
@@ -131,6 +131,7 @@ class Samfilter(object):
 
             # get the real location of the file
             filepath = instance.get_absolute_filepath()
+            logger.debug("\n\n\n")
             logger.info("samfile: filepath = " + filepath)
 
             # check filepath suffixes
@@ -139,19 +140,16 @@ class Samfilter(object):
                    or filepath.lower().endswith(self.suffixes[2])):
                 return None
 
-            # get or create the schema to hold these parameters
-            #schema = self.getSchema()
-            
-            # get or create the parameter definitions if they don't exist
-            #self.getOrCreateParameterNames(schema, self.paramnames)
-            
-            # set the metadata (a dictionary of dictionaries)
-            metadata = self.extractMetadata(filepath)            
-            logger.debug('samfile: meta-data = ' + str(metadata))
+            # check its a new file
+            psets = instance.getParameterSets()
+            if not psets:
+                # set the metadata (a dictionary of dictionaries)
+                metadata = self.extractMetadata(filepath)            
+                logger.debug('samfile: meta-data = ' + str(metadata))
 
-            # save this metadata to a file
-            if (metadata != None):
-                self.saveMetadata(instance, metadata)
+                # save this metadata to a file
+                if metadata:
+                    self.saveMetadata(instance, metadata)
             
             self.printDatafileMetadata(instance)
             
@@ -189,7 +187,7 @@ class Samfilter(object):
         return result          
 
     # ----------------------------------
-    # save, or overwrite, the datafile's 
+    # save, or overwrite, the datafile's f
     # meta-data on the database
     # ----------------------------------
     def saveMetadata(self, instance, metadata):
@@ -215,23 +213,32 @@ class Samfilter(object):
             # create datafile parameter set
             logger.debug('schema_mapping[\'list\'] = ' + str(schema_mapping['list']))
 
+
             if not schema_mapping['list']:
                 logger.debug('create parameterset for line = '  + str(line))
                 parameter_set = DatafileParameterSet(schema=schema,dataset_file=instance)
                 parameter_set.save()
-                self.createDatafileParameters(schema_mapping['params'], parameter_set, parameter_names,  
+                self.createDatafileParameters(schema_mapping['params'], parameter_set, 
+                                              parameter_names,  
                                               line)
             else:
                 logger.debug('line = ' + str(line))
                 for item in line:
-                    logger.debug('create parameterset for item = '  + str(item))
-                    parameter_set = DatafileParameterSet(schema=schema,dataset_file=instance)
-                    parameter_set.save()
                     if key == 'CO':
+                        logger.debug('create parameterset for item = '  + str(item))
+                        psets = self.getParameterSets(schema, instance)
+                        if not psets:
+                            parameter_set = DatafileParameterSet(schema=schema,dataset_file=instance)
+                            parameter_set.save()
+                        else:
+                            parameter_set = psets[0]
                         self.createDatafileParameters(schema_mapping['params'], parameter_set, 
                                                       parameter_names,  
-                                                      {'CO': item, })
+                                                      {'CO': item,})
                     else:
+                        logger.debug('create parameterset for item = '  + str(item))
+                        parameter_set = DatafileParameterSet(schema=schema,dataset_file=instance)
+                        parameter_set.save()
                         self.createDatafileParameters(schema_mapping['params'], parameter_set, 
                                                       parameter_names,  
                                                       item)
@@ -260,10 +267,29 @@ class Samfilter(object):
             schema = Schema.objects.get(namespace__exact=fullname)
         except Schema.DoesNotExist:
             # create missing schema
-            schema = Schema(namespace=fullname, name=("SAM Format - " + key + " line"), type=Schema.DATAFILE)
+            schema = Schema(namespace=fullname, name=("SAM Format - " + key), type=Schema.DATAFILE)
             schema.save()
-                
+          
+        # finished      
         return schema
+
+    # ----------------------------------------
+    # get a list of parameters for this schema 
+    # ----------------------------------------
+    def getParameterSets(self, schema, datafile):
+        """Return a list of the parameter sets for a given schema and datafile.
+        """
+        logger.debug('getParameterSets for schema[id=' + str(schema.id) + '] and datafile[id=' + str(datafile.id) + ']')
+        
+        result = []
+        psets = datafile.getParameterSets()
+        for pset in psets:
+            if pset.schema == schema:
+                result.append(pset)
+          
+        # finished    
+        logger.debug('getParameterSets() found %d items' % len(result))  
+        return result
 
     # ----------------------------------------
     # get a list of parameters for this schema 
