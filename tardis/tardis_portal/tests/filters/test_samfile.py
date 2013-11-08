@@ -10,7 +10,7 @@ from compare import expect
 
 from django.test import TestCase
 
-from tardis.tardis_portal.filters.samfiles import Samfilter 
+from tardis.tardis_portal.filters.samformat.samfiles import Samfilter 
 
 from tardis.tardis_portal.models import User, UserProfile, Location, Experiment, Dataset, \
     ObjectACL, Dataset_File, Replica, Schema, ParameterName, DatafileParameter
