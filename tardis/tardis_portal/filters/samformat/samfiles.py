@@ -42,6 +42,7 @@ from tardis.tardis_portal.models import Schema, DatafileParameterSet
 from tardis.tardis_portal.models import ParameterName, DatafileParameter
 
 from pprint import pformat
+from dateutil import parser
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class Samfilter(object):
             'ID': {'name': 'id', 'full_name': 'Read Group Identifier', 'required': True},
             'CN': {'name': 'center', 'full_name': 'Name of the Sequencing Center'},
             'DS': {'name': 'description', 'full_name': 'Description'},
-            'DT': {'name': 'date', 'full_name': 'Run Date', 'data_type': 'DATETIME'},
+            'DT': {'name': 'rundate', 'full_name': 'Run Date', 'data_type': 'DATETIME'},
             'FO': {'name': 'flow', 'full_name': 'Flow Order'},
             'KS': {'name': 'key', 'full_name': 'Key Sequence'},
             'LB': {'name': 'library', 'full_name': 'Library'},
@@ -356,7 +357,7 @@ class Samfilter(object):
                 # set value from metadata
                 param = DatafileParameter(parameterset=paramset,name=pname)
                 param = self.setParameterValue(param,pname,metadata.get(key))
-                logger.debug('parameter = ' + str(param))
+                logger.debug('parameter = %s' % pformat(param))
 
             elif values.has_key('default'):
                 # check default provided
@@ -379,7 +380,10 @@ class Samfilter(object):
         if pname.isNumeric():
             parameter.numerical_value = value
         elif pname.isDateTime():
-            parameter.datetime_value = value
+            logger.debug('isDateTime = %s ' % value)
+            dvalue = parser.parse(value)
+            logger.debug("date = " + str(dvalue))
+            parameter.datetime_value = dvalue
         else:
             parameter.string_value = value
 

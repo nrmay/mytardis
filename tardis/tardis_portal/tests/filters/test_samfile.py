@@ -304,7 +304,7 @@ class SAMFormatTestCase(TestCase):
         # check sequence parameter names
         param_names = ParameterName.objects.filter(schema=schema)
         self.assertEqual(param_names.count(),12,"count of parameter names not matched!")
-        param = param_names.get(name__exact='date')
+        param = param_names.get(name__exact='rundate')
         expect(param.full_name).to_equal('Run Date')
         expect(param.data_type).to_equal(ParameterName.DATETIME)
         # check DatafileParameterSet
@@ -323,10 +323,14 @@ class SAMFormatTestCase(TestCase):
                 self.assertEqual(gsample,'NA12891',"program[id=%s] center not matched!" % gid)               
                 self.assertEqual(gcenter,'name:with:colon',"program[id=%s] center not matched!" % gid)               
             elif gid == 'L2':
+                gdate = pset.get_param('rundate').datetime_value
                 self.assertEqual(gunit,'SC_2_12',"program[id=%s] unit not matched!" % gid)
                 self.assertEqual(glib,'SC_2',"program[id=%s] library not matched!" % gid)
                 self.assertEqual(gsample,'NA12891',"program[id=%s] center not matched!" % gid)               
-                self.assertEqual(gcenter,'name:with:colon',"program[id=%s] center not matched!" % gid)               
+                self.assertEqual(gcenter,'name:with:colon',"program[id=%s] center not matched!" % gid)   
+                self.assertEqual(gdate.day,11,"program[rdate=%s] day not matched!" % gid)
+                self.assertEqual(gdate.month,11,"program[rdate=%s] month not matched!" % gid)       
+                self.assertEqual(gdate.year,2013,"program[rdate=%s] year not matched!" % gid)            
             else:
                 self.fail('unexpected group id = ' + gid)
   
