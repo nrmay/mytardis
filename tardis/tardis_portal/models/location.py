@@ -21,7 +21,7 @@ class Location(models.Model):
     '''
 
     name = models.CharField(max_length=10, unique=True)
-    url = models.CharField(max_length=400, unique=True)
+    url = models.CharField(max_length=255, unique=True)
     type = models.CharField(max_length=10)
     priority = models.IntegerField()
     is_available = models.BooleanField(default=True)
