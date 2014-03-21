@@ -9,7 +9,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         
         # Adding index on 'DatafileParameter', fields ['string_value']
-        db.create_index('tardis_portal_datafileparameter', ['string_value'])
+        #db.create_index('tardis_portal_datafileparameter', ['string_value'])
 
         # Adding index on 'DatafileParameter', fields ['datetime_value']
         db.create_index('tardis_portal_datafileparameter', ['datetime_value'])
@@ -18,7 +18,7 @@ class Migration(SchemaMigration):
         db.create_index('tardis_portal_datafileparameter', ['numerical_value'])
 
         # Adding index on 'DatasetParameter', fields ['string_value']
-        db.create_index('tardis_portal_datasetparameter', ['string_value'])
+        #db.create_index('tardis_portal_datasetparameter', ['string_value'])
 
         # Adding index on 'DatasetParameter', fields ['datetime_value']
         db.create_index('tardis_portal_datasetparameter', ['datetime_value'])
@@ -27,7 +27,7 @@ class Migration(SchemaMigration):
         db.create_index('tardis_portal_datasetparameter', ['numerical_value'])
 
         # Adding index on 'ExperimentParameter', fields ['string_value']
-        db.create_index('tardis_portal_experimentparameter', ['string_value'])
+        #db.create_index('tardis_portal_experimentparameter', ['string_value'])
 
         # Adding index on 'ExperimentParameter', fields ['datetime_value']
         db.create_index('tardis_portal_experimentparameter', ['datetime_value'])
@@ -45,7 +45,7 @@ class Migration(SchemaMigration):
         db.delete_index('tardis_portal_experimentparameter', ['datetime_value'])
 
         # Removing index on 'ExperimentParameter', fields ['string_value']
-        db.delete_index('tardis_portal_experimentparameter', ['string_value'])
+        #db.delete_index('tardis_portal_experimentparameter', ['string_value'])
 
         # Removing index on 'DatasetParameter', fields ['numerical_value']
         db.delete_index('tardis_portal_datasetparameter', ['numerical_value'])
@@ -54,7 +54,7 @@ class Migration(SchemaMigration):
         db.delete_index('tardis_portal_datasetparameter', ['datetime_value'])
 
         # Removing index on 'DatasetParameter', fields ['string_value']
-        db.delete_index('tardis_portal_datasetparameter', ['string_value'])
+        #db.delete_index('tardis_portal_datasetparameter', ['string_value'])
 
         # Removing index on 'DatafileParameter', fields ['numerical_value']
         db.delete_index('tardis_portal_datafileparameter', ['numerical_value'])
@@ -63,7 +63,7 @@ class Migration(SchemaMigration):
         db.delete_index('tardis_portal_datafileparameter', ['datetime_value'])
 
         # Removing index on 'DatafileParameter', fields ['string_value']
-        db.delete_index('tardis_portal_datafileparameter', ['string_value'])
+        #db.delete_index('tardis_portal_datafileparameter', ['string_value'])
 
 
     models = {
@@ -117,7 +117,7 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tardis_portal.ParameterName']"}),
             'numerical_value': ('django.db.models.fields.FloatField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'}),
             'parameterset': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tardis_portal.DatafileParameterSet']"}),
-            'string_value': ('django.db.models.fields.TextField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'})
+            'string_value': ('django.db.models.fields.TextField', [], {'db_index': 'False', 'null': 'True', 'blank': 'True'})
         },
         'tardis_portal.datafileparameterset': {
             'Meta': {'ordering': "['id']", 'object_name': 'DatafileParameterSet'},
@@ -152,7 +152,7 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tardis_portal.ParameterName']"}),
             'numerical_value': ('django.db.models.fields.FloatField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'}),
             'parameterset': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tardis_portal.DatasetParameterSet']"}),
-            'string_value': ('django.db.models.fields.TextField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'})
+            'string_value': ('django.db.models.fields.TextField', [], {'db_index': 'False', 'null': 'True', 'blank': 'True'})
         },
         'tardis_portal.datasetparameterset': {
             'Meta': {'ordering': "['id']", 'object_name': 'DatasetParameterSet'},
@@ -197,7 +197,7 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tardis_portal.ParameterName']"}),
             'numerical_value': ('django.db.models.fields.FloatField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'}),
             'parameterset': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['tardis_portal.ExperimentParameterSet']"}),
-            'string_value': ('django.db.models.fields.TextField', [], {'db_index': 'True', 'null': 'True', 'blank': 'True'})
+            'string_value': ('django.db.models.fields.TextField', [], {'db_index': 'False', 'null': 'True', 'blank': 'True'})
         },
         'tardis_portal.experimentparameterset': {
             'Meta': {'ordering': "['id']", 'object_name': 'ExperimentParameterSet'},
