@@ -178,8 +178,8 @@ class Migration(SchemaMigration):
             'image_url': ('django.db.models.fields.URLField', [], {'max_length': '2000', 'blank': 'True'}),
             'internal_description': ('django.db.models.fields.TextField', [], {}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '400'}),
-            'url': ('django.db.models.fields.URLField', [], {'unique': 'True', 'max_length': '2000'})
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
+            'url': ('django.db.models.fields.URLField', [], {'unique': 'True', 'max_length': '255'})
         },
         'tardis_portal.location': {
             'Meta': {'object_name': 'Location'},
@@ -189,7 +189,7 @@ class Migration(SchemaMigration):
             'priority': ('django.db.models.fields.IntegerField', [], {}),
             'transfer_provider': ('django.db.models.fields.CharField', [], {'default': "'local'", 'max_length': '10'}),
             'type': ('django.db.models.fields.CharField', [], {'max_length': '10'}),
-            'url': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '400'})
+            'url': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'})
         },
         'tardis_portal.objectacl': {
             'Meta': {'ordering': "['content_type', 'object_id']", 'object_name': 'ObjectACL'},

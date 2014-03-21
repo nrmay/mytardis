@@ -179,8 +179,8 @@ class Migration(SchemaMigration):
             'image_url': ('django.db.models.fields.URLField', [], {'max_length': '2000', 'blank': 'True'}),
             'internal_description': ('django.db.models.fields.TextField', [], {}),
             'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '400'}),
-            'url': ('django.db.models.fields.URLField', [], {'unique': 'True', 'max_length': '2000'})
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
+            'url': ('django.db.models.fields.URLField', [], {'unique': 'True', 'max_length': '255'})
         },
         'tardis_portal.parametername': {
             'Meta': {'ordering': "('order', 'name')", 'unique_together': "(('schema', 'name'),)", 'object_name': 'ParameterName'},
