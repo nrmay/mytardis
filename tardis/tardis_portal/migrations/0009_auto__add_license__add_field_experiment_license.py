@@ -11,8 +11,8 @@ class Migration(SchemaMigration):
         # Adding model 'License'
         db.create_table('tardis_portal_license', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=400)),
-            ('url', self.gf('django.db.models.fields.URLField')(unique=True, max_length=2000)),
+            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
+            ('url', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255)),
             ('internal_description', self.gf('django.db.models.fields.TextField')()),
             ('image_url', self.gf('django.db.models.fields.URLField')(max_length=2000, blank=True)),
             ('allows_distribution', self.gf('django.db.models.fields.BooleanField')(default=False)),
