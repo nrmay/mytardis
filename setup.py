@@ -49,7 +49,7 @@ setup(
         'ua-parser==0.3.3',
         'PyYAML==3.10',
         'django-tastypie==0.9.16-tzfix',
-        'cas_provider==0.3.1',
+        'django-cas-provider==0.3.1',
         #'pygraphviz',  # for automatic diagram generation for the docs
     ],
     dependency_links=[
