@@ -99,6 +99,10 @@ token_urls = patterns(
     (r'^delete/(?P<token_id>.+)/', 'token_delete'),
     )
 
+cas_urls = patterns(
+    '',
+    (r'^cas/', include('cas_provider.urls')),
+    )
 
 accounts_urls = patterns(
     'tardis.tardis_portal.views',
