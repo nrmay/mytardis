@@ -237,6 +237,7 @@ INSTALLED_APPS = (
     'bootstrapform',
     'mustachejs',
     'tastypie',
+    'cas_provider',
 )
 
 JASMINE_TEST_DIRECTORY = path.abspath(path.join(path.dirname(__file__),
