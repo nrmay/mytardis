@@ -100,7 +100,7 @@ token_urls = patterns(
     )
 
 cas_urls = patterns(
-    '',
+    'tardis.tardis_portal.views',
     (r'^cas/', include('cas_provider.urls')),
     )
 

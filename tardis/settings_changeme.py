@@ -115,6 +115,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.transaction.TransactionMiddleware',
     'tardis.tardis_portal.auth.token_auth.TokenAuthMiddleware',
+    'django_cas.middleware.CASMiddleware',
+    'django.middleware.doc.XViewMiddleware',
 )
 
 ROOT_URLCONF = 'tardis.urls'
@@ -237,7 +239,7 @@ INSTALLED_APPS = (
     'bootstrapform',
     'mustachejs',
     'tastypie',
-    'cas_provider',
+    #'cas_provider',
 )
 
 JASMINE_TEST_DIRECTORY = path.abspath(path.join(path.dirname(__file__),
@@ -280,6 +282,7 @@ ACCOUNT_ACTIVATION_DAYS = 3
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
+    'django_cas.backends.CASBackend',
     'tardis.tardis_portal.auth.authorisation.ACLAwareBackend',
 )
 
