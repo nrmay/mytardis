@@ -50,11 +50,10 @@ setup(
         'PyYAML==3.10',
         'django-tastypie==0.9.16-tzfix',
         'django-cas',
-        #'django-cas-provider==0.3.2-depfix',
         #'pygraphviz',  # for automatic diagram generation for the docs
     ],
     dependency_links=[
         'https://github.com/grischa/django-tastypie/tarball/testing-mytardis-deployment#egg=django-tastypie-0.9.16-tzfix',  # noqa
-        #'https://github.com/nrmay/django-cas-provider/tarball/depfix#egg=django-cas-provider-0.3.2-depfix',
+        'https://github.com/nrmay/django-cas/tarball/master#egg=django-cas-2.1.1-master',
     ]
 )

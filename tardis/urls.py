@@ -99,11 +99,6 @@ token_urls = patterns(
     (r'^delete/(?P<token_id>.+)/', 'token_delete'),
     )
 
-cas_urls = patterns(
-    'tardis.tardis_portal.views',
-    (r'^cas/', include('cas_provider.urls')),
-    )
-
 accounts_urls = patterns(
     'tardis.tardis_portal.views',
     (r'^login/$', 'login'),
@@ -113,6 +108,12 @@ accounts_urls = patterns(
         form_class=RegistrationForm),
         name='register'),
     (r'', include('registration.backends.default.urls')),
+    )
+
+cas_urls = patterns(
+    'django_cas.views',
+    (r'^login/$', 'login' ),
+    (r'^logout/$', 'logout' ),
     )
 
 dataset_urls = patterns(
@@ -308,6 +309,9 @@ urlpatterns = patterns(
 
     # Account Views
     (r'^accounts/', include(accounts_urls)),
+
+    # CAS Views
+    (r'^accounts/', include(cas_urls)),
 
     # Group Views
     (r'^groups/$', 'tardis.tardis_portal.views.manage_groups'),
