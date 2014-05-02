@@ -187,6 +187,10 @@ class ACLAuthorization(Authorization):
                 if dfp.parameterset.dataset_file in datafiles:
                     dfp_list.append(dfp)
             return dfp_list
+        elif type(bundle.obj) == Schema:
+            return object_list
+        elif type(bundle.obj) == ParameterName:
+            return object_list
         else:
             return []
 
@@ -218,12 +222,16 @@ class ACLAuthorization(Authorization):
             return has_datafile_access(
                 bundle.request, bundle.obj.parameterset.dataset_file.id)
         elif type(bundle.obj) == User:
-            # allow all authenticated users to read user list
-            return bundle.request.user.is_authenticated()
+            # allow all authenticated users to read public user info
+            # the dehydrate function also adds/removes some information
+            authenticated = bundle.request.user.is_authenticated()
+            public_user = bundle.obj.experiment_set.filter(
+                public_access__gt=1).count() > 0
+            return public_user or authenticated
         elif type(bundle.obj) == Schema:
-            return bundle.request.user.is_authenticated()
+            return True
         elif type(bundle.obj) == ParameterName:
-            return bundle.request.user.is_authenticated()
+            return True
         elif type(bundle.obj) == Location:
             return bundle.request.user.is_authenticated()
         raise NotImplementedError(type(bundle.obj))
@@ -400,6 +408,48 @@ class UserResource(ModelResource):
         fields = ['username', 'first_name', 'last_name']
         serializer = default_serializer
 
+    def dehydrate(self, bundle):
+        '''
+        use cases:
+        public user:
+          anonymous:
+            name, uri, email, id
+          authenticated:
+            other user:
+              name, uri, email, id
+            same user:
+              name, uri, email, id, username
+        private user:
+          anonymous:
+            none
+          authenticated:
+            other user:
+              name, uri, id
+            same user:
+              name, uri, email, id, username
+        '''
+        authuser = bundle.request.user
+        authenticated = authuser.is_authenticated()
+        queried_user = bundle.obj
+        public_user = queried_user.experiment_set.filter(
+            public_access__gt=1).count() > 0
+        same_user = authuser == queried_user
+
+        # add the database id for convenience
+        bundle.data['id'] = queried_user.id
+
+        # allow the user to find out their username and email
+        if same_user and authenticated:
+            bundle.data['email'] = queried_user.email
+        else:
+            del(bundle.data['username'])
+
+        # add public information
+        if public_user:
+            bundle.data['email'] = queried_user.email
+
+        return bundle
+
 
 class MyTardisModelResource(ModelResource):
 
@@ -520,6 +570,24 @@ class ExperimentResource(MyTardisModelResource):
             'title': ('exact',),
         }
 
+    def dehydrate(self, bundle):
+        exp = bundle.obj
+        authors = [{'name': a.author, 'url': a.url}
+                   for a in exp.author_experiment_set.all()]
+        bundle.data['authors'] = authors
+        lic = exp.license
+        if lic is not None:
+            bundle.data['license'] = {
+                'name': lic.name,
+                'url': lic.url,
+                'description': lic.internal_description,
+                'image_url': lic.image_url,
+                'allows_distribution': lic.allows_distribution,
+            }
+        owners = exp.get_owners()
+        bundle.data['owner_ids'] = [o.id for o in owners]
+        return bundle
+
     def hydrate_m2m(self, bundle):
         '''
         create ACL before any related objects are created in order to use
@@ -626,7 +694,6 @@ class DatasetResource(MyTardisModelResource):
         datafiles = Dataset_File.objects.filter(dataset__id=dataset_id)
         auth_bundle = self.build_bundle(request=request)
         auth_bundle.obj = Dataset_File()
-        #import ipdb; ipdb.set_trace()
         self.authorized_read_list(
             datafiles, auth_bundle
             )
@@ -693,6 +760,15 @@ class Dataset_FileResource(MyTardisModelResource):
             file_path = write_uploaded_file_to_dataset(dataset,
                                                        newfile)
             location_name = 'local'
+            if 'md5sum' not in bundle.data and 'sha512sum' not in bundle.data:
+                location = Location.objects.get(name=location_name)
+                import urlparse
+                abs_path = os.path.join(urlparse.urlsplit(location.url).path,
+                                        file_path)
+                from tardis.tardis_portal.util import generate_file_checksums
+                md5, sha512, size, _ = generate_file_checksums(
+                    open(abs_path, 'r'), False)
+                bundle.data['md5sum'] = md5
             del(bundle.data['attached_file'])
         elif 'replicas' not in bundle.data:
             # no replica specified: return upload path and create replica for
