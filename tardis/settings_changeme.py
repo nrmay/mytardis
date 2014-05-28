@@ -266,13 +266,13 @@ GROUP_PROVIDERS = (
 # We will assume that localdb will always be a default AUTH_PROVIDERS entry
 
 AUTH_PROVIDERS = (
-    ('localdb', 'Local DB',
-     'tardis.tardis_portal.auth.localdb_auth.DjangoAuthBackend'),
+    ('localdb', 'Local DB', 'tardis.tardis_portal.auth.localdb_auth.DjangoAuthBackend'),
+    ('cas', 'RMIT CAS', 'django_cas.backends.CASBackend'),
 )
 
 # default authentication module for experiment ownership user during
 # ingestion? Must be one of the above authentication provider names
-DEFAULT_AUTH = 'localdb'
+DEFAULT_AUTH = 'cas'
 
 AUTH_PROFILE_MODULE = 'tardis_portal.UserProfile'
 
