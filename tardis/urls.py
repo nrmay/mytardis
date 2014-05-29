@@ -5,13 +5,9 @@ from django.contrib.auth.views import logout
 from django.conf.urls.defaults import patterns, include, url
 from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-
 from registration.backends.default.views import RegistrationView
-
 from tardis.tardis_portal.forms import RegistrationForm
-
 from django.http import HttpResponse
-
 import django_jasmine.urls
 
 
@@ -21,6 +17,12 @@ def getTardisApps():
                       settings.INSTALLED_APPS))
 
 handler500 = 'tardis.views.error_handler'
+
+cas_urls = patterns(
+    'django_cas.views',
+    (r'^cas/login/(?P<next_page>.+)', 'login'),
+    (r'^cas/logout/(?P<next_page>.+)$', 'logout' ),
+    )
 
 core_urls = patterns(
     'tardis.tardis_portal.views',
@@ -108,12 +110,6 @@ accounts_urls = patterns(
         form_class=RegistrationForm),
         name='register'),
     (r'', include('registration.backends.default.urls')),
-    )
-
-cas_urls = patterns(
-    'django_cas.views',
-    (r'^login/$', 'login' ),
-    (r'^logout/$', 'logout' ),
     )
 
 dataset_urls = patterns(
@@ -311,7 +307,7 @@ urlpatterns = patterns(
     (r'^accounts/', include(accounts_urls)),
 
     # CAS Views
-    (r'^accounts/', include(cas_urls)),
+    (r'^cas/', include(cas_urls)),
 
     # Group Views
     (r'^groups/$', 'tardis.tardis_portal.views.manage_groups'),

@@ -182,6 +182,12 @@
                   Log In
                 </a>
               </li>
+              <li>
+                <a id="login-button" class="btn btn-info" href="{% url 'django_cas.views.login' 'index' %}">
+                  <i class="icon-signin"></i>
+                  CAS Log In
+                </a>
+              </li>
             {% endif %}
             </ul>
             {% if search_form %}
