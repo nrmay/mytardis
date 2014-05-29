@@ -245,8 +245,8 @@ INSTALLED_APPS = (
 JASMINE_TEST_DIRECTORY = path.abspath(path.join(path.dirname(__file__),
                                                 'tardis_portal',
                                                 'tests',
-                                                'jasmine'))
-
+                                                'jasmine')
+)
 
 USER_PROVIDERS = (
     'tardis.tardis_portal.auth.localdb_auth.DjangoUserProvider',

@@ -20,8 +20,8 @@ handler500 = 'tardis.views.error_handler'
 
 cas_urls = patterns(
     'django_cas.views',
-    (r'^cas/login/(?P<next_page>.+)', 'login'),
-    (r'^cas/logout/(?P<next_page>.+)$', 'logout' ),
+    (r'^login/$', 'login'),
+    (r'^logout/$', 'logout' ),
     )
 
 core_urls = patterns(

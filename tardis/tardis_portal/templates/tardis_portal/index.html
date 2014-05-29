@@ -14,7 +14,7 @@
   </div>
   <p>
     {% if not is_authenticated %}
-      Please <a href="{% url 'dgango_cas.views.login' 'index' %}">login</a>
+      Please <a href="{% url 'django_cas.views.login' %}">login</a>
       to see your experiment data.
     {% endif %}
   </p>
