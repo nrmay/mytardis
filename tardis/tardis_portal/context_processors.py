@@ -48,5 +48,7 @@ def user_details_processor(request):
 def global_contexts(request):
     site_title = getattr(settings, 'SITE_TITLE', None)
     sponsored_by = getattr(settings, 'SPONSORED_TEXT', None)
+    use_cas = getattr(settings, 'USE_CAS', None)
     return {'site_title': site_title,
-            'sponsored_by': sponsored_by}
+            'sponsored_by': sponsored_by,
+            'use_cas': use_cas}
