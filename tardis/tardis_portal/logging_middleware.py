@@ -80,6 +80,11 @@ LOGGING = {
             'propagate': False,
             'level': settings.SYSTEM_LOG_LEVEL,
         },
+        'django_cas': {
+            'handlers': ['modulelog'],
+            'propagate': False,
+            'level': settings.MODULE_LOG_LEVEL,
+        },
         'tardis': {
             'handlers': ['modulelog'],
             'propagate': False,
