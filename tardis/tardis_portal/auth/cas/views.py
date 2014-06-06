@@ -5,6 +5,7 @@ from urlparse import urljoin
 
 from django.http import HttpResponseRedirect, HttpResponseForbidden, HttpResponse
 from django.conf import settings
+from django.contrib import auth
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from tardis.tardis_portal.auth.cas.models import PgtIOU
 
@@ -37,20 +38,20 @@ def _redirect_url(request):
     """
     logger.debug("_redirect_url: request[%s]" % (request))
 
-    next = request.GET.get(REDIRECT_FIELD_NAME)
+    next_page = request.GET.get(REDIRECT_FIELD_NAME)
     
     if not next:
         if settings.CAS_IGNORE_REFERER:
-            next = settings.CAS_REDIRECT_URL
+            next_page = settings.CAS_REDIRECT_URL
         else:
-            next = request.META.get('HTTP_REFERER', settings.CAS_REDIRECT_URL)
+            next_page = request.META.get('HTTP_REFERER', settings.CAS_REDIRECT_URL)
         prefix = (('http://', 'https://')[request.is_secure()] +
                   request.get_host())
-        if next.startswith(prefix):
-            next = next[len(prefix):]
-        next = None
+        if next_page.startswith(prefix):
+            next_page = next_page[len(prefix):]
+        next_page = None
         
-    return next
+    return next_page
 
 
 def _login_url(service, ticket='ST'):
@@ -97,7 +98,7 @@ def login(request, next_page=None, required=False):
     ticket = request.GET.get('ticket')
     service = _service_url(request, next_page)
     if ticket:
-        from django.contrib import auth
+        logger.debug("auth.authenticate(ticket[%s], service[%s])" % (ticket,service))
         user = auth.authenticate(ticket=ticket, service=service)
 
         if user is not None:
