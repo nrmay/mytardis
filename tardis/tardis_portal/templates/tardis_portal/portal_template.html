@@ -162,7 +162,7 @@
                   {% endif %}
                   	{% if use_cas %}
             		<li>
-                    <a href="{% url 'django_cas.views.logout' %}">
+                    <a href="{% url 'tardis.tardis_portal.auth.cas.views.logout' %}">
                       <i class="icon-signout"></i>
                       CAS Log Out
                     </a>
@@ -187,7 +187,7 @@
               {% endif %}
 				{% if use_cas %}
               <li>
-                <a id="login-button" class="btn btn-info" href="{% url 'django_cas.views.login' %}">
+                <a id="login-button" class="btn btn-info" href="{% url 'tardis.tardis_portal.auth.cas.views.login' %}">
                   <i class="icon-signin"></i>
                   CAS Log In
                 </a>

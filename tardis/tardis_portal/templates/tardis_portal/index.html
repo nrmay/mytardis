@@ -16,7 +16,7 @@
     {% if not is_authenticated %}
       Please 
       {% if use_cas %}
-      	<a href="{% url 'django_cas.views.login' %}">login</a>
+      	<a href="{% url 'tardis.tardis_portal.auth.cas.views.login' %}">login</a>
       {% else %}
       	<a href="{% url 'tardis.tardis_portal.views.login' %}">login</a>
       {% endif %}
