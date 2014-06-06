@@ -4,11 +4,12 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
-from django_cas.exceptions import CasTicketException, CasConfigException
+from exceptions import CasTicketException, CasConfigException
 # Ed Crewe - add in signals to delete old tickets
 from django.db.models.signals import post_save
 from datetime import datetime, timedelta
-from django_cas import CAS
+
+from tardis.tardis_portal.auth.cas import CAS
 
 class Tgt(models.Model):
     username = models.CharField(max_length = 255, unique = True)

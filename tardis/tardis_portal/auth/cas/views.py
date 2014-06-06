@@ -6,7 +6,7 @@ from urlparse import urljoin
 from django.http import HttpResponseRedirect, HttpResponseForbidden, HttpResponse
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django_cas.models import PgtIOU
+from tardis.tardis_portal.auth.cas.models import PgtIOU
 
 import logging
 

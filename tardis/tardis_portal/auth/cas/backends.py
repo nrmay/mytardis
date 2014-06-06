@@ -1,12 +1,13 @@
 """CAS authentication backend"""
 
 import urllib
+from urllib import urlencode, urlopen
 from urlparse import urljoin
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django_cas.models import User, Tgt, PgtIOU
-from django_cas import CAS
+from tardis.tardis_portal.auth.cas.models import User, Tgt, PgtIOU
+from tardis.tardis_portal.auth.cas import CAS
 
 __all__ = ['CASBackend']
 

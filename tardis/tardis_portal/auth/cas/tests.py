@@ -3,8 +3,8 @@ import urllib
 from django.conf import settings
 from django.utils.unittest.case import TestCase
 
-from django_cas.backends import _verify_cas2
-from django_cas.models import PgtIOU, Tgt
+from tardis.tardis_portal.auth.cas.backends import _verify_cas2
+from tardis.tardis_portal.auth.cas.models import PgtIOU, Tgt
 
 __author__ = 'sannies'
 

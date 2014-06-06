@@ -7,8 +7,9 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.views import login, logout
 from django.core.urlresolvers import reverse
-from django_cas.views import login as cas_login, logout as cas_logout, _service_url
 from django.conf import settings
+
+from tardis.tardis_portal.auth.cas.views import login as cas_login, logout as cas_logout, _service_url
 
 __all__ = ['CASMiddleware']
 
