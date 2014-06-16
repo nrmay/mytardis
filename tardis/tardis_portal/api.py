@@ -92,6 +92,7 @@ class MyTardisAuthentication(object):
                     return(False)
                 else:
                     request._authentication_backend = session_auth
+                    
                     return(check)
             else:
                 request.user = AnonymousUser()

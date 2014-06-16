@@ -18,10 +18,11 @@ __all__ = ['login', 'logout']
 def _service_url(request, redirect_to=None):
     """Generates application service URL for CAS"""
     
-    logger.debug("_service_url: request[%s] redirect_to[%s]" % (request, redirect_to))
+    logger.debug("request[%s] redirect_to[%s]" % (request, redirect_to))
     
     protocol = ('http://', 'https://')[request.is_secure()]
     host = request.get_host()
+    #service = protocol + host + request.path
     service = protocol + host + request.path
     if redirect_to:
         if '?' in service:
@@ -38,20 +39,20 @@ def _redirect_url(request):
     """
     logger.debug("_redirect_url: request[%s]" % (request))
 
-    next_page = request.GET.get(REDIRECT_FIELD_NAME)
+    next = request.GET.get(REDIRECT_FIELD_NAME)
     
     if not next:
         if settings.CAS_IGNORE_REFERER:
-            next_page = settings.CAS_REDIRECT_URL
+            next = settings.CAS_REDIRECT_URL
         else:
-            next_page = request.META.get('HTTP_REFERER', settings.CAS_REDIRECT_URL)
+            next = request.META.get('HTTP_REFERER', settings.CAS_REDIRECT_URL)
+            
         prefix = (('http://', 'https://')[request.is_secure()] +
                   request.get_host())
-        if next_page.startswith(prefix):
-            next_page = next_page[len(prefix):]
-        next_page = None
+        if next.startswith(prefix):
+            next = next[len(prefix):]
         
-    return next_page
+    return next
 
 
 def _login_url(service, ticket='ST'):
@@ -75,12 +76,13 @@ def _logout_url(request, next_page=None):
     
     logger.debug("request[%s] next_page[%s]" % (request, next_page))
 
-
     url = urljoin(settings.CAS_SERVER_URL, 'logout')
+    
     if next_page:
         protocol = ('http://', 'https://')[request.is_secure()]
         host = request.get_host()
-        url += '?' + urlencode({'url': protocol + host + next_page})
+        url += '?' + urlencode({'service': protocol + host + next_page})
+
     return url
 
 
@@ -105,7 +107,7 @@ def login(request, next_page=None, required=False):
             auth.login(request, user)
             name = user.first_name or user.username
             message = "Login succeeded. Welcome, %s." % name
-            user.message_set.create(message=message)
+            #user.message_set.create(message=message)
             return HttpResponseRedirect(next_page)
         elif settings.CAS_RETRY_LOGIN or required:
             return HttpResponseRedirect(_login_url(service, ticket))

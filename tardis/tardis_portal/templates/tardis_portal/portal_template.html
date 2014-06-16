@@ -160,21 +160,19 @@
                   {% endif %}
                   <li class="divider"></li>
                   {% endif %}
-                  	{% if use_cas %}
-            		<li>
-                    <a href="{% url 'tardis.tardis_portal.auth.cas.views.logout' %}">
-                      <i class="icon-signout"></i>
-                      CAS Log Out
-                    </a>
-                  </li>
-                  {% else %}
-                  <li>
+                  	<li>            		
+                    {% if request.user.get_profile.isDjangoAccount %}
                     <a href="{% url 'django.contrib.auth.views.logout' %}">
                       <i class="icon-signout"></i>
                       Log Out
                     </a>
-                  </li>
-               	  {% endif %}
+                  	{% else %}
+            		<a href="{% url 'tardis.tardis_portal.auth.cas.views.logout' %}">
+                      <i class="icon-signout"></i>
+                      Log Out
+                    </a>
+                  {% endif %}
+                  </li>                 
                 </ul>
               </li>
             {% else %}
@@ -185,21 +183,19 @@
                 </a>
               </li>
               {% endif %}
-				{% if use_cas %}
-              <li>
+			  <li>
+                {% if use_cas %}
                 <a id="login-button" class="btn btn-info" href="{% url 'tardis.tardis_portal.auth.cas.views.login' %}">
                   <i class="icon-signin"></i>
-                  CAS Log In
+                  Log In
                 </a>
-              </li>
                 {% else %}
-              <li>
                 <a id="login-button" class="btn btn-info" href="{% url 'tardis.tardis_portal.views.login' %}">
                   <i class="icon-signin"></i>
                   Log In
                 </a>
+                {% endif %}
               </li>  
-              {% endif %}
             {% endif %}
             </ul>
             {% if search_form %}

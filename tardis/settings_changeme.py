@@ -117,7 +117,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.transaction.TransactionMiddleware',
     'tardis.tardis_portal.auth.token_auth.TokenAuthMiddleware',
     'tardis.tardis_portal.auth.cas.middleware.CASMiddleware',
-    'django.middleware.doc.XViewMiddleware',
 )
 
 ROOT_URLCONF = 'tardis.urls'

@@ -6,8 +6,14 @@ from urlparse import urljoin
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import Permission
 from tardis.tardis_portal.auth.cas.models import User, Tgt, PgtIOU
 from tardis.tardis_portal.auth.cas import CAS
+from tardis.tardis_portal.auth.utils import configure_user
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 __all__ = ['CASBackend']
 
@@ -51,10 +57,15 @@ def _verify_cas2(ticket, service):
 
     url = (urljoin(settings.CAS_SERVER_URL, 'proxyValidate') + '?' +
            urllib.urlencode(params))
-
+    
+    logger.debug("url = " + url)
+    
     page = urllib.urlopen(url)
+    
     response = page.read()
+    
     tree = ElementTree.fromstring(response)
+    
     page.close()
 
     if tree.find(CAS + 'authenticationSuccess') is not None:
@@ -135,7 +146,16 @@ class CASBackend(object):
         user, created = User.objects.get_or_create(username=username)
         if created:
             user.set_unusable_password()
-
+            user.save()
+            user.user_permissions.add(Permission.objects.get(codename='add_experiment'))
+            user.user_permissions.add(Permission.objects.get(codename='change_experiment'))
+            user.user_permissions.add(Permission.objects.get(codename='change_group'))
+            user.user_permissions.add(Permission.objects.get(codename='change_userauthentication'))
+            user.user_permissions.add(Permission.objects.get(codename='change_objectacl'))
+            user.user_permissions.add(Permission.objects.get(codename='change_dataset'))
+            user.user_permissions.add(Permission.objects.get(codename='add_dataset_file'))
+            configure_user(user)
+            
         if authentication_response and _CAS_USER_DETAILS_RESOLVER:
             _CAS_USER_DETAILS_RESOLVER(user, authentication_response)
 
