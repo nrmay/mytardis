@@ -73,9 +73,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 def getAuthMethodChoices():
+    # first add default authMethod
+    # then add other authMethods
     authMethodChoices = ()
+    otherMethodChoices = ()     
     for authMethods in settings.AUTH_PROVIDERS:
-        authMethodChoices += ((authMethods[0], authMethods[1]),)
+        if settings.DEFAULT_AUTH and authMethods[0] == settings.DEFAULT_AUTH:
+            authMethodChoices += ((authMethods[0], authMethods[1]),)
+        else:
+            otherMethodChoices += ((authMethods[0], authMethods[1]),)
+    
+    for otherMethod in otherMethodChoices:
+        authMethodChoices += (otherMethod)
+    
     return authMethodChoices
 
 

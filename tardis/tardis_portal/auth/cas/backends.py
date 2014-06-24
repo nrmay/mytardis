@@ -147,13 +147,13 @@ class CASBackend(object):
         if created:
             user.set_unusable_password()
             user.save()
-            user.user_permissions.add(Permission.objects.get(codename='add_experiment'))
-            user.user_permissions.add(Permission.objects.get(codename='change_experiment'))
-            user.user_permissions.add(Permission.objects.get(codename='change_group'))
-            user.user_permissions.add(Permission.objects.get(codename='change_userauthentication'))
-            user.user_permissions.add(Permission.objects.get(codename='change_objectacl'))
-            user.user_permissions.add(Permission.objects.get(codename='change_dataset'))
-            user.user_permissions.add(Permission.objects.get(codename='add_dataset_file'))
+            #user.user_permissions.add(Permission.objects.get(codename='add_experiment'))
+            #user.user_permissions.add(Permission.objects.get(codename='change_experiment'))
+            #user.user_permissions.add(Permission.objects.get(codename='change_group'))
+            #user.user_permissions.add(Permission.objects.get(codename='change_userauthentication'))
+            #user.user_permissions.add(Permission.objects.get(codename='change_objectacl'))
+            #user.user_permissions.add(Permission.objects.get(codename='change_dataset'))
+            #user.user_permissions.add(Permission.objects.get(codename='add_dataset_file'))
             configure_user(user)
             
         if authentication_response and _CAS_USER_DETAILS_RESOLVER:

@@ -23,7 +23,7 @@ def _service_url(request, redirect_to=None):
     protocol = ('http://', 'https://')[request.is_secure()]
     host = request.get_host()
     #service = protocol + host + request.path
-    service = protocol + host + request.path
+    service = protocol + host
     if redirect_to:
         if '?' in service:
             service += '&'
@@ -105,8 +105,8 @@ def login(request, next_page=None, required=False):
 
         if user is not None:
             auth.login(request, user)
-            name = user.first_name or user.username
-            message = "Login succeeded. Welcome, %s." % name
+            #name = user.first_name or user.username
+            #message = "Login succeeded. Welcome, %s." % name
             #user.message_set.create(message=message)
             return HttpResponseRedirect(next_page)
         elif settings.CAS_RETRY_LOGIN or required:

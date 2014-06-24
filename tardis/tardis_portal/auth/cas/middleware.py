@@ -24,7 +24,7 @@ class CASMiddleware(object):
         else:
             request.session['use_cas'] = False
             
-        ticket = request.REQUEST.get('ticket')
+        ticket = request.GET.get('ticket')
         # fix for tastypie
         request._read_started = False
         
