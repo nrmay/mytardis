@@ -152,13 +152,15 @@ class AuthService():
         for authMethod in authMethods:
             # authenticate() returns either a User or a dictionary describing a
             # user (id, display, email, first_name, last_name).
-            user = self._authentication_backends[
-                authMethod].authenticate(**credentials)
-            if isinstance(user, dict):
-                user_dict = user
-                user = self._get_or_create_user_from_dict(user_dict, authMethod)
-            if isinstance(user, User):
-                return user
+            logger.debug("authMethod = %s" % (authMethod))
+            if authMethod != 'cas':
+                user = self._authentication_backends[
+                    authMethod].authenticate(**credentials)
+                if isinstance(user, dict):
+                    user_dict = user
+                    user = self._get_or_create_user_from_dict(user_dict, authMethod)
+                if isinstance(user, User):
+                    return user
         return None
 
 
