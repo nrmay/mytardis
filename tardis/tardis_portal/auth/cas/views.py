@@ -38,6 +38,10 @@ def _redirect_url(request):
     set.
     """
     logger.debug("_redirect_url: request[%s]" % (request))
+    
+    if settings.CAS_IGNORE_REDIRECT:
+        logger.debug("ignore redirect!")
+        return None
 
     next = request.GET.get(REDIRECT_FIELD_NAME)
     

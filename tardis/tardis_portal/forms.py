@@ -84,7 +84,7 @@ def getAuthMethodChoices():
             otherMethodChoices += ((authMethods[0], authMethods[1]),)
     
     for otherMethod in otherMethodChoices:
-        authMethodChoices += (otherMethod)
+        authMethodChoices += ((otherMethod[0], otherMethod[1]),)
     
     return authMethodChoices
 
@@ -134,14 +134,13 @@ class RegistrationForm(forms.Form):
     email = forms.EmailField(widget=forms.TextInput(attrs=dict(attrs_dict,
                                                                maxlength=75)),
                              label=_("Email address"))
-
-    password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs=attrs_dict, render_value=False),
-        label=_("Password"))
-
-    password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs=attrs_dict, render_value=False),
-        label=_("Password (again)"))
+    if not settings.USE_CAS:
+        password1 = forms.CharField(
+            widget=forms.PasswordInput(attrs=attrs_dict, render_value=False),
+            label=_("Password"))
+        password2 = forms.CharField(
+            widget=forms.PasswordInput(attrs=attrs_dict, render_value=False),
+            label=_("Password (again)"))
 
     def clean_username(self):
         """
@@ -227,9 +226,10 @@ class AddUserPermissionsForm(forms.Form):
     entered_user = forms.CharField(label='User', required=False, max_length=100)
     autocomp_user = forms.CharField(label='', required=False, max_length=100,
                                    widget=forms.HiddenInput)
+    logger.debug("settings.USE_CAS = %s")
     authMethod = forms.CharField(required=True,
-        widget=forms.Select(choices=getAuthMethodChoices()),
-        label='Authentication Method')
+                                 widget=forms.Select(choices=getAuthMethodChoices()),
+                                 label='Authentication Method')
     read = forms.BooleanField(label='Read access', required=False, initial=True)
     read.widget.attrs['class'] = 'canRead'
     write = forms.BooleanField(label='Edit access', required=False)
@@ -251,18 +251,19 @@ class AddGroupPermissionsForm(forms.Form):
 class CreateGroupPermissionsForm(forms.Form):
     addgroup = forms.CharField(label='Group', required=False, max_length=100)
     addgroup.widget.attrs['class'] = 'groupsuggest'
-    authMethod = forms.CharField(required=True,
-        widget=forms.Select(choices=getAuthMethodChoices()),
-        label='Authentication Method')
+    if not settings.USE_CAS:
+        authMethod = forms.CharField(required=True,
+            widget=forms.Select(choices=getAuthMethodChoices()),
+            label='Authentication Method')
     adduser = forms.CharField(label='User', required=False, max_length=100)
     adduser.widget.attrs['class'] = 'usersuggest'
 
 
 class ManageGroupPermissionsForm(forms.Form):
-
-    authMethod = forms.CharField(required=True,
-        widget=forms.Select(choices=getAuthMethodChoices()),
-        label='Authentication Method')
+    if not settings.USE_CAS:
+        authMethod = forms.CharField(required=True,
+                                     widget=forms.Select(choices=getAuthMethodChoices()),
+                                     label='Authentication Method')
     adduser = forms.CharField(label='User', required=False, max_length=100)
     adduser.widget.attrs['class'] = 'usersuggest'
     admin = forms.BooleanField(label='Group Admin', required=False, initial=False)
@@ -270,9 +271,10 @@ class ManageGroupPermissionsForm(forms.Form):
 
 
 class CreateUserPermissionsForm(RegistrationForm):
-    authMethod = forms.CharField(required=True,
-        widget=forms.Select(choices=getAuthMethodChoices()),
-        label='Authentication Method')
+    if not settings.USE_CAS:
+        authMethod = forms.CharField(required=True,
+            widget=forms.Select(choices=getAuthMethodChoices()),
+            label='Authentication Method')
 
 
 class DatafileSearchForm(forms.Form):

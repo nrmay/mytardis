@@ -2160,8 +2160,9 @@ def add_user_to_group(request, group_id, username):
             isAdmin = True
 
     try:
-        authMethod = request.GET['authMethod']
-        if authMethod == localdb_auth_key:
+        if 'authMethod' in request.GET:
+            authMethod = request.GET['authMethod']    
+        if authMethod == localdb_auth_key or authMethod == 'cas':
             user = User.objects.get(username=username)
         else:
             user = UserAuthentication.objects.get(username=username,
@@ -2440,6 +2441,10 @@ def create_group(request):
 
     if 'authMethod' in request.GET:
         authMethod = request.GET['authMethod']
+        if authMethod == '':
+            authMethod = settings.DEFAULT_AUTH
+            
+    logger.debug("group[%s] admin[%s] authMethod[%s]" % (groupname, admin, authMethod) )
 
     try:
         group = Group(name=groupname)
@@ -2456,8 +2461,8 @@ def create_group(request):
             transaction.rollback()
             return HttpResponse('User %s does not exist' % (settings.TOKEN_USERNAME))
         try:
-            authMethod = request.GET['authMethod']
-            if authMethod == localdb_auth_key:
+            #authMethod = request.GET['authMethod']
+            if authMethod == localdb_auth_key or authMethod == 'cas':
                 adminuser = User.objects.get(username=admin)
             else:
                 adminuser = UserAuthentication.objects.get(username=admin,
@@ -2632,6 +2637,8 @@ def create_user(request):
 
     if 'authMethod' in request.POST:
         authMethod = request.POST['authMethod']
+        if authMethod == '':
+            authMethod = settings.DEFAULT_AUTH
 
     if 'email' in request.POST:
         email = request.POST['email']
@@ -2646,7 +2653,7 @@ def create_user(request):
 
         userProfile = UserProfile(user=user, isDjangoAccount=True)
         userProfile.save()
-
+        
         authentication = UserAuthentication(userProfile=userProfile,
                                             username=username,
                                             authenticationMethod=authMethod)

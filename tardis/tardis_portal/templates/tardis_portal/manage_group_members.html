@@ -30,7 +30,9 @@ $(document).ready(function() {
                   var group = $(this).parents('.group_create').find("#id_addgroup").val();
                   var admin = $(this).parents('.group_create').find("#id_adduser").val();
                   var authMethod = $(this).parents('.group_create').find("#id_authMethod").val();
-
+                  if (authMethod == undefined) {
+                	  authMethod = '';
+                  }
                   get_vars = '?group=' + group + '&admin=' + admin + '&authMethod=' + authMethod
                   action = '/experiment/control_panel/create/group/' + get_vars;
 
@@ -68,7 +70,10 @@ $(document).ready(function() {
         var group_id = form.find("[name=group_id]").val();
         var users_div = form.parents('.access_list').children('.users');
         var isAdmin = form.find("[name=admin]").is(':checked');
-        var action = '/group/' + group_id + '/add/' + usersuggest + '/?isAdmin=' + isAdmin + '&authMethod=' + authMethod;
+        var action = '/group/' + group_id + '/add/' + usersuggest + '/?isAdmin=' + isAdmin;
+        if (authMethod) {
+        	action = action + '&authMethod=' + authMethod;
+        }
         $.ajax({
           type: "GET",
           url: action,
@@ -164,21 +169,26 @@ $(document).ready(function() {
                   var password1 = $(this).parents('.user_create').find("#id_password1").val();
                   var password2 = $(this).parents('.user_create').find("#id_password2").val();
                   var authMethod = $(this).parents('.user_create').find("#id_authMethod").val();
-
+                  if (authMethod == undefined) {
+                	  authMethod = '';
+                  }
+                  if (password1 == undefined) {
+                      password1 = '';
+                	  password2 = '';                	    
+                  }
+                  
                   post_vars = {user: username,
-			       email: email,
-			       authMethod: authMethod,
-			       password: password1,
-			       csrfmiddlewaretoken: '{{csrf_token}}'
-			       };
+	                       email: email,
+	                       authMethod: authMethod,
+	       	               password: password1,
+	                       csrfmiddlewaretoken: '{{csrf_token}}'
+	                      };
                   action = '/experiment/control_panel/create/user/'
 
                   // returns 0 on fail
                   var passwordMatch = password1.localeCompare(password2);
 
-                  if (!passwordMatch)
-                  {
-
+                  if (!passwordMatch) {
                       $.ajax({
                         'async': false,
                         'global': true,
@@ -194,9 +204,7 @@ $(document).ready(function() {
                       });
                       return false;
 
-                }
-                else
-                {
+                } else {
                     alert('Passwords do not match!');
                 }
 
@@ -252,7 +260,7 @@ $(document).ready(function() {
 </div>
 
 <div class="alert alert-success" style="display:none">
-  <a class="close" data-dismiss="alert">×</a>
+  <a class="close" data-dismiss="alert">��</a>
   <strong>Success!</strong>
   <div id="success-message"></div>
 </div>
