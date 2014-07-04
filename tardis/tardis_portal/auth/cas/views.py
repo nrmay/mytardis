@@ -20,10 +20,16 @@ def _service_url(request, redirect_to=None):
     
     logger.debug("request[%s] redirect_to[%s]" % (request, redirect_to))
     
-    protocol = ('http://', 'https://')[request.is_secure()]
-    host = request.get_host()
-    #service = protocol + host + request.path
-    service = protocol + host
+    try:
+        service = settings.CAS_SERVICE_URL
+    except:
+        logger.debug("settings.CAS_SERVICE_URL not found! Using request path as service.")
+        protocol = ('http://', 'https://')[request.is_secure()]
+        host = request.get_host()
+        service = protocol + host + request.path
+    
+    logger.debug("service = %s" % (service))
+        
     if redirect_to:
         if '?' in service:
             service += '&'
