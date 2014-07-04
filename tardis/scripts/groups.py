@@ -86,16 +86,8 @@ def run():
     auth_group_1 = save_or_locate(auth_group_1)
 
     auth_group_2 = Group()
-    auth_group_2.name = u'My Group'
+    auth_group_2.name = u'Users'
     auth_group_2 = save_or_locate(auth_group_2)
-
-    auth_group_3 = Group()
-    auth_group_3.name = u'test'
-    auth_group_3 = save_or_locate(auth_group_3)
-
-    auth_group_4 = Group()
-    auth_group_4.name = u'Users'
-    auth_group_4 = save_or_locate(auth_group_4)
 
     #Re-processing model: Group
 
@@ -106,15 +98,15 @@ def run():
 
 
 
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 4, {'codename': u'add_group', 'content_type_id': 2L, 'name': u'Can add group', 'id': 4L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 5, {'codename': u'change_group', 'content_type_id': 2L, 'name': u'Can change group', 'id': 5L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 49, {'codename': u'add_dataset', 'content_type_id': 17L, 'name': u'Can add dataset', 'id': 49L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 50, {'codename': u'change_dataset', 'content_type_id': 17L, 'name': u'Can change dataset', 'id': 50L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 61, {'codename': u'add_dataset_file', 'content_type_id': 21L, 'name': u'Can add dataset_ file', 'id': 61L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 43, {'codename': u'add_experiment', 'content_type_id': 15L, 'name': u'Can add experiment', 'id': 43L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 44, {'codename': u'change_experiment', 'content_type_id': 15L, 'name': u'Can change experiment', 'id': 44L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 31, {'codename': u'add_groupadmin', 'content_type_id': 11L, 'name': u'Can add group admin', 'id': 31L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 32, {'codename': u'change_groupadmin', 'content_type_id': 11L, 'name': u'Can change group admin', 'id': 32L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 38, {'codename': u'change_objectacl', 'content_type_id': 13L, 'name': u'Can change object acl', 'id': 38L} )  )
-    auth_group_4.permissions.add(  locate_object(Permission, "id", Permission, "id", 35, {'codename': u'change_userauthentication', 'content_type_id': 12L, 'name': u'Can change user authentication', 'id': 35L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 4, {'codename': u'add_group', 'content_type_id': 2L, 'name': u'Can add group', 'id': 4L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 5, {'codename': u'change_group', 'content_type_id': 2L, 'name': u'Can change group', 'id': 5L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 49, {'codename': u'add_dataset', 'content_type_id': 17L, 'name': u'Can add dataset', 'id': 49L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 50, {'codename': u'change_dataset', 'content_type_id': 17L, 'name': u'Can change dataset', 'id': 50L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 61, {'codename': u'add_dataset_file', 'content_type_id': 21L, 'name': u'Can add dataset_ file', 'id': 61L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 43, {'codename': u'add_experiment', 'content_type_id': 15L, 'name': u'Can add experiment', 'id': 43L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 44, {'codename': u'change_experiment', 'content_type_id': 15L, 'name': u'Can change experiment', 'id': 44L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 31, {'codename': u'add_groupadmin', 'content_type_id': 11L, 'name': u'Can add group admin', 'id': 31L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 32, {'codename': u'change_groupadmin', 'content_type_id': 11L, 'name': u'Can change group admin', 'id': 32L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 38, {'codename': u'change_objectacl', 'content_type_id': 13L, 'name': u'Can change object acl', 'id': 38L} )  )
+    auth_group_2.permissions.add(  locate_object(Permission, "id", Permission, "id", 35, {'codename': u'change_userauthentication', 'content_type_id': 12L, 'name': u'Can change user authentication', 'id': 35L} )  )
 
