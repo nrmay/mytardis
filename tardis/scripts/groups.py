@@ -57,13 +57,14 @@ def run():
     root_user = locate_object(User, "username", User, "username", u'root', {} )
 
     # Processing model: Group
+    group_name = u'Administrators'
     try:
-        auth_group_1 = locate_object(Group, "name", Group, "name", u'Administrators', {})
-        print("group name[Administrators] skipped: already exists!")
+        auth_group_1 = locate_object(Group, "name", Group, "name", group_name, {})
+        print("group name[%s] skipped: already exists!" % (group_name))
     except:
         # create group
         auth_group_1 = Group()
-        auth_group_1.name = u'Administrators'
+        auth_group_1.name = group_name
         auth_group_1 = save_or_locate(auth_group_1)
         # add permissions
         auth_group_1.permissions.add(  locate_object(Permission, "codename", Permission, "codename", u'add_user', {} )  )
@@ -73,14 +74,19 @@ def run():
         group_admin_1.user = root_user
         group_admin_1.group =  auth_group_1
         group_admin_1 = save_or_locate(group_admin_1)
+        # add group to user
+        root_user.groups.add(auth_group_1)
+        # finished adding group
+        print("Group name[%s] created!" % (group_name))
 
+    group_name = u'Users'
     try: 
-        auth_group_2 = locate_object(Group, "name", Group, "name", u'Users', {})
-        print("group name[Users] skipped: already exists!")
+        auth_group_2 = locate_object(Group, "name", Group, "name", group_name, {})
+        print("group name[%s] skipped: already exists!" % (group_name))
     except:
         # create group
         auth_group_2 = Group()
-        auth_group_2.name = u'Users'
+        auth_group_2.name = group_name
         auth_group_2 = save_or_locate(auth_group_2)
         # add Permissions
         auth_group_2.permissions.add(  locate_object(Permission, "codename", Permission, "codename", u'add_group', {} )  )
@@ -99,5 +105,10 @@ def run():
         group_admin_2.user = root_user
         group_admin_2.group =  auth_group_2
         group_admin_2 = save_or_locate(group_admin_2)
+        # add group to user
+        root_user.groups.add(auth_group_2)
+        # finished adding group
+        print("Group name[%s] created!" % (group_name))
+        
         
 # end of script #
