@@ -226,7 +226,6 @@ class AddUserPermissionsForm(forms.Form):
     entered_user = forms.CharField(label='User', required=False, max_length=100)
     autocomp_user = forms.CharField(label='', required=False, max_length=100,
                                    widget=forms.HiddenInput)
-    logger.debug("settings.USE_CAS = %s")
     authMethod = forms.CharField(required=True,
                                  widget=forms.Select(choices=getAuthMethodChoices()),
                                  label='Authentication Method')
