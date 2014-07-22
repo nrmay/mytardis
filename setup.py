@@ -23,7 +23,7 @@ setup(
         'pyparsing==1.5.7',  # held back by rdflib and rdfextras
         'feedparser==5.1.3',
         'elementtree',
-        'django==1.5.5',
+        'django==1.5.1',
         'django-registration==1.0',
         'django-extensions==1.1.1',
         'django-form-utils==0.2.0',
@@ -50,11 +50,10 @@ setup(
         'PyYAML==3.10',
         'django-tastypie==0.9.16-tzfix',
         'bleach',
-        #'django-cas==2.1.1-django15'
+        'compare'
         #'pygraphviz',  # for automatic diagram generation for the docs
     ],
     dependency_links=[
         'https://github.com/grischa/django-tastypie/tarball/testing-mytardis-deployment#egg=django-tastypie-0.9.16-tzfix',  # noqa
-        #'https://github.com/nrmay/django-cas/tarball/django15#egg=django-cas-2.1.1-django15',
     ]
 )
