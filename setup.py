@@ -50,7 +50,7 @@ setup(
         'PyYAML==3.10',
         'django-tastypie==0.9.16-tzfix',
         'bleach',
-        'compare==0.1a'
+        'compare==0.2b'
         #'pygraphviz',  # for automatic diagram generation for the docs
     ],
     dependency_links=[
