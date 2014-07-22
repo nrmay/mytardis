@@ -12,7 +12,9 @@
   <br/>
   {% for field in addUserPermissionsForm %}
 	  {% if field.label == "Authentication Method" %}
+	      {% if not use_cas %}
 	      <br/><span id="id_authMethod_label">{{ field.label }}:<br/><br/></span> {{ field }}
+	      {% endif %}
           <br/>Permissions: 
           <br/>
               <select id="id_permission">

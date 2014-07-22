@@ -16,6 +16,9 @@ _DEFAULTS = {
     'CAS_VERSION': '2',
 }
 
+auth_key = u'cas'
+auth_display_name = u'RMIT CAS'
+
 CAS_URI = 'http://www.yale.edu/tp/cas'
 CAS = '{%s}' % CAS_URI
 

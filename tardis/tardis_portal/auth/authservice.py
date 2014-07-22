@@ -46,6 +46,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.models import Permission
 from tardis.tardis_portal.staging import get_full_staging_path
 from tardis.tardis_portal.auth.localdb_auth import auth_key as localdb_auth_key
+from tardis.tardis_portal.auth.cas import auth_key as cas_auth_key
 from tardis.tardis_portal.auth.utils import get_or_create_user
 
 logger = logging.getLogger(__name__)
@@ -153,7 +154,7 @@ class AuthService():
             # authenticate() returns either a User or a dictionary describing a
             # user (id, display, email, first_name, last_name).
             logger.debug("authMethod = %s" % (authMethod))
-            if authMethod != 'cas':
+            if authMethod != cas_auth_key:
                 user = self._authentication_backends[
                     authMethod].authenticate(**credentials)
                 if isinstance(user, dict):

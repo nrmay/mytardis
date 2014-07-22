@@ -98,6 +98,7 @@ from tardis.tardis_portal.models import Experiment, ExperimentParameter, \
 from tardis.tardis_portal import constants
 from tardis.tardis_portal.auth.localdb_auth import django_user, django_group
 from tardis.tardis_portal.auth.localdb_auth import auth_key as localdb_auth_key
+from tardis.tardis_portal.auth.cas import auth_key as cas_auth_key
 from tardis.tardis_portal.auth import decorators as authz
 from tardis.tardis_portal.auth import auth_service
 from tardis.tardis_portal.shortcuts import render_response_index, \
@@ -2162,7 +2163,7 @@ def add_user_to_group(request, group_id, username):
     try:
         if 'authMethod' in request.GET:
             authMethod = request.GET['authMethod']    
-        if authMethod == localdb_auth_key or authMethod == 'cas':
+        if authMethod == localdb_auth_key or authMethod == cas_auth_key:
             user = User.objects.get(username=username)
         else:
             user = UserAuthentication.objects.get(username=username,
@@ -2251,8 +2252,12 @@ def add_experiment_access_user(request, experiment_id, username):
         if request.GET['isOwner'] == 'true':
             isOwner = True
 
-    authMethod = request.GET['authMethod']
-    user = auth_service.getUser(authMethod, username)
+    authMethod = localdb_auth_key
+    if 'authMethod' in request.GET:
+        authMethod = request.GET['authMethod']
+    if authMethod == localdb_auth_key or authMethod == cas_auth_key:
+        #user = auth_service.getUser(authMethod, username)
+        user = User.objects.get(username=username)
     if user is None or username == settings.TOKEN_USERNAME:
         return HttpResponse('User %s does not exist.' % (username))
 
@@ -2462,7 +2467,7 @@ def create_group(request):
             return HttpResponse('User %s does not exist' % (settings.TOKEN_USERNAME))
         try:
             #authMethod = request.GET['authMethod']
-            if authMethod == localdb_auth_key or authMethod == 'cas':
+            if authMethod == localdb_auth_key or authMethod == cas_auth_key:
                 adminuser = User.objects.get(username=admin)
             else:
                 adminuser = UserAuthentication.objects.get(username=admin,
