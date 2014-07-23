@@ -2255,7 +2255,8 @@ def add_experiment_access_user(request, experiment_id, username):
     authMethod = localdb_auth_key
     if 'authMethod' in request.GET:
         authMethod = request.GET['authMethod']
-    if authMethod == localdb_auth_key or authMethod == cas_auth_key:
+        
+    if authMethod == localdb_auth_key or authMethod == cas_auth_key or authMethod == 'undefined':
         #user = auth_service.getUser(authMethod, username)
         user = User.objects.get(username=username)
     if user is None or username == settings.TOKEN_USERNAME:
