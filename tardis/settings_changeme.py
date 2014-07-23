@@ -2,10 +2,10 @@ import djcelery
 from datetime import timedelta
 from os import path
 
-from tardis.tardis_portal.auth.localdb_auth import auth_key as localdb_auth_key
-from tardis.tardis_portal.auth.localdb_auth import auth_display_name as localdb_display_name
-from tardis.tardis_portal.auth.cas import auth_key as cas_auth_key
-from tardis.tardis_portal.auth.cas import auth_display_name as cas_display_name
+#from tardis.tardis_portal.auth.localdb_auth import auth_key as localdb_auth_key
+#from tardis.tardis_portal.auth.localdb_auth import auth_display_name as localdb_display_name
+#from tardis.tardis_portal.auth.cas import auth_key as cas_auth_key
+#from tardis.tardis_portal.auth.cas import auth_display_name as cas_display_name
 
 DEBUG = False
 
@@ -269,13 +269,13 @@ GROUP_PROVIDERS = (
 # We will assume that localdb will always be a default AUTH_PROVIDERS entry
 
 AUTH_PROVIDERS = (
-    (cas_auth_key, cas_display_name, 'tardis.tardis_portal.auth.cas.backends.CASBackend'),
-    (localdb_auth_key, localdb_display_name, 'tardis.tardis_portal.auth.localdb_auth.DjangoAuthBackend'),
+    ('cas', 'RMIT CAS', 'tardis.tardis_portal.auth.cas.backends.CASBackend'),
+    ('localdb', 'Local DB', 'tardis.tardis_portal.auth.localdb_auth.DjangoAuthBackend'),
 )
 
 # default authentication module for experiment ownership user during
 # ingestion? Must be one of the above authentication provider names
-DEFAULT_AUTH = cas_auth_key
+DEFAULT_AUTH = 'cas'
 
 AUTH_PROFILE_MODULE = 'tardis_portal.UserProfile'
 
