@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden, HttpRespons
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib import messages
 from tardis.tardis_portal.auth.cas.models import PgtIOU
 
 import logging
@@ -122,8 +123,10 @@ def login(request, next_page=None, required=False):
         elif settings.CAS_RETRY_LOGIN or required:
             return HttpResponseRedirect(_login_url(service, ticket))
         else:
-            error = "<h1>Forbidden</h1><p>Login failed.</p>"
-            return HttpResponseForbidden(error)
+            #error = "<h1>Forbidden</h1><p>Login failed.</p>"
+            #return HttpResponseForbidden(error)
+            messages.error(request, "Login failed!")
+            return HttpResponseRedirect(next_page)
     else:
         return HttpResponseRedirect(_login_url(service, ticket))
 
@@ -140,6 +143,7 @@ def logout(request, next_page=None):
     if settings.CAS_LOGOUT_COMPLETELY:
         return HttpResponseRedirect(_logout_url(request, next_page))
     else:
+        messages.error(request, 'Please close the browser to complete logout!')
         return HttpResponseRedirect(next_page)
 
 def proxy_callback(request):
