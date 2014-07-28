@@ -94,8 +94,10 @@
             <ul class="nav">
               <li><a href="{% url 'tardis.tardis_portal.views.index' %}">Home</a></li>
               <li><a href="{% url 'tardis.tardis_portal.views.about' %}">About</a></li>
-              <li><a href="{% url 'tardis.tardis_portal.views.experiment_index' %}">Data</a></li>
+              <li><a href="{% url 'tardis.tardis_portal.views.my_data' %}">My Data</a></li>
+              <li><a href="{% url 'tardis.tardis_portal.views.public_data' %}">Public Data</a></li>
               <li><a href="{% url 'tardis.tardis_portal.views.stats' %}">Stats</a></li>
+              <li><a href="{% url 'tardis.tardis_portal.views.user_guide' %}"><b>Help</b></a></li>
             </ul>
             <ul class="login-nav nav pull-right">
             {% if is_authenticated %}
@@ -226,8 +228,20 @@
 	    }
 	};
       </script>
-
-      <div id="message-container" ></div>
+      
+      <div id="message-container"></div>
+      
+      {% if messages %}
+	  <div id="django-message-container" >
+        {% for message in messages %}
+        <p{% if message.tags %} class="alert alert-block alert-{{ message.tags }}"{% endif %}>
+        	<a class="close" data-dismiss="alert">&times;</a>
+        	{{ message }}
+        </p>
+        {% endfor %}
+      </div>
+      {% endif %}      
+      
       <div id="status-alert"
            class="alert alert-block {% if error %}alert-error{% endif %}"
            style="display: none">

@@ -54,7 +54,7 @@ from django.template import Context
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q, Sum
-from django.shortcuts import render_to_response, redirect
+from django.shortcuts import render_to_response, redirect, render
 from django.contrib.auth.models import User, Group, AnonymousUser
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden, HttpResponseNotFound
 from django.contrib.auth.decorators import login_required, permission_required
@@ -330,9 +330,37 @@ def about(request):
                  'about_pressed': True,
                  'nav': [{'name': 'About', 'link': '/about/'}],
                  'version': settings.MYTARDIS_VERSION,
-             })
+                 })
     return HttpResponse(render_response_index(request,
                         'tardis_portal/about.html', c))
+
+
+@login_required
+def my_data(request):
+    '''
+    show data with credential-based access
+    delegate to custom views depending on settings
+    '''
+
+    c = Context({
+        'owned_experiments': Experiment.safe.owned(request.user)
+        .order_by('-update_time'),
+        'shared_experiments': Experiment.safe.shared(request.user)
+        .order_by('-update_time'),
+    })
+    return HttpResponse(render_response_index(
+        request, 'tardis_portal/my_data.html', c))
+
+
+def public_data(request):
+    '''
+    list of public experiments
+    '''
+    c = Context({
+        'public_experiments': Experiment.safe.public(),
+    })
+    return HttpResponse(render_response_index(
+        request, 'tardis_portal/public_data.html', c))
 
 
 def experiment_index(request):
@@ -440,30 +468,52 @@ def view_experiment(request, experiment_id,
         c['error'] = request.POST['error']
     if 'query' in request.GET:
         c['search_query'] = SearchQueryString(request.GET['query'])
-    if  'search' in request.GET:
+    if 'search' in request.GET:
         c['search'] = request.GET['search']
-    if  'load' in request.GET:
+    if 'load' in request.GET:
         c['load'] = request.GET['load']
 
     _add_protocols_and_organizations(request, experiment, c)
 
-    import sys
+    default_apps = [
+        {'name': 'Description',
+         'viewfn': 'tardis.tardis_portal.views.experiment_description'},
+        {'name': 'Metadata',
+         'viewfn': 'tardis.tardis_portal.views.retrieve_experiment_metadata'},
+        {'name': 'Sharing', 'viewfn': 'tardis.tardis_portal.views.share'},
+        {'name': 'Transfer Datasets',
+         'viewfn': 'tardis.tardis_portal.views.experiment_dataset_transfer'},
+    ]
     appnames = []
     appurls = []
+
+    for app in getattr(settings, 'EXPERIMENT_APPS', default_apps):
+        try:
+            appnames.append(app['name'])
+            if 'viewfn' in app:
+                appurls.append(reverse(app['viewfn'], args=[experiment_id]))
+            elif 'url' in app:
+                appurls.append(app['url'])
+        except:
+            logger.debug('error when loading default exp apps')
+
+    import sys
     for app in getTardisApps():
         try:
-            appnames.append(sys.modules['%s.%s.settings'
-                                        % (settings.TARDIS_APP_ROOT, app)].NAME)
-            appurls.append('%s.%s.views.index' % (settings.TARDIS_APP_ROOT,
-                                                  app))
+            appnames.append(
+                sys.modules['%s.%s.settings'
+                            % (settings.TARDIS_APP_ROOT, app)].NAME)
+            appurls.append(
+                reverse('%s.%s.views.index' % (settings.TARDIS_APP_ROOT,
+                                               app), args=[experiment_id]))
         except:
             logger.debug("No tab for %s" % app)
 
     c['apps'] = zip(appurls, appnames)
-
     return HttpResponse(render_response_index(request, template_name, c))
 
-def _add_protocols_and_organizations(request, experiment, c):
+
+def _add_protocols_and_organizations(request, collection_object, c):
     """Add the protocol, format and organization details for
     archive requests.  Since the MacOSX archiver can't cope with
     streaming ZIP, the best way to avoid 'user disappointment'
@@ -477,9 +527,9 @@ def _add_protocols_and_organizations(request, experiment, c):
     else:
         cannot_do_zip = False
 
-    if experiment:
+    if collection_object:
         c['protocol'] = []
-        download_urls = experiment.get_download_urls()
+        download_urls = collection_object.get_download_urls()
         for key, value in download_urls.iteritems():
             if cannot_do_zip and key == 'zip':
                 continue
@@ -493,6 +543,7 @@ def _add_protocols_and_organizations(request, experiment, c):
     c['organization'] = get_download_organizations()
     c['default_organization'] = getattr(
         settings, 'DEFAULT_ARCHIVE_ORGANIZATION', 'classic')
+
 
 @authz.experiment_access_required
 def experiment_description(request, experiment_id):
@@ -626,7 +677,7 @@ def view_dataset(request, dataset_id):
         except (EmptyPage, InvalidPage):
             return paginator.page(paginator.num_pages)
 
-    upload_method = getattr(settings, "UPLOAD_METHOD", "uploadify")
+    upload_method = getattr(settings, "UPLOAD_METHOD", False)
 
     c = Context({
         'dataset': dataset,
@@ -643,7 +694,7 @@ def view_dataset(request, dataset_id):
             authz.get_accessible_experiments_for_dataset(request, dataset_id),
         'upload_method': upload_method
     })
-    _add_protocols_and_organizations(request, None, c)
+    _add_protocols_and_organizations(request, dataset, c)
     return HttpResponse(render_response_index(
         request, 'tardis_portal/view_dataset.html', c))
 
@@ -1281,6 +1332,7 @@ def retrieve_datafile_list(request, dataset_id, template_name='tardis_portal/aja
         'params' : params
 
         })
+    _add_protocols_and_organizations(request, None, c)
     return HttpResponse(render_response_index(request, template_name, c))
 
 
@@ -2767,9 +2819,11 @@ def import_staging_files(request, dataset_id):
     c = Context({
         'dataset_id': dataset_id,
         'staging_mount_prefix': settings.STAGING_MOUNT_PREFIX,
-        'staging_mount_user_suffix_enable': settings.STAGING_MOUNT_USER_SUFFIX_ENABLE
-     })
-    return render_to_response('tardis_portal/ajax/import_staging_files.html', c)
+        'staging_mount_user_suffix_enable':
+        settings.STAGING_MOUNT_USER_SUFFIX_ENABLE,
+    })
+    return HttpResponse(
+        render(request, 'tardis_portal/ajax/import_staging_files.html', c))
 
 
 def list_staging_files(request, dataset_id):
@@ -2796,7 +2850,8 @@ def list_staging_files(request, dataset_id):
         'dataset_id': dataset_id,
         'directory_listing': staging_list(from_path, staging, root=root),
      })
-    return render_to_response('tardis_portal/ajax/list_staging_files.html', c)
+    return HttpResponse(render(
+        request, 'tardis_portal/ajax/list_staging_files.html', c))
 
 
 @authz.dataset_write_permissions_required
@@ -2826,6 +2881,19 @@ def upload_files(request, dataset_id,
                  'session_id': request.session.session_key
                  })
     return render_to_response(template_name, c)
+
+
+def remove_csrf_token(request):
+    '''
+    rather than fixing the form code that loops over all POST entries
+    indiscriminately, I am removing the csrf token with this hack.
+    This is only required in certain form code and can be removed should
+    this ever be fixed
+    '''
+    new_post_dict = request.POST.copy()
+    del(new_post_dict['csrfmiddlewaretoken'])
+    request.POST = new_post_dict
+    return request
 
 
 @login_required
@@ -2863,9 +2931,10 @@ def edit_parameters(request, parameterset, otype):
     valid = True
 
     if request.method == 'POST':
+        request = remove_csrf_token(request)
 
         class DynamicForm(create_parameterset_edit_form(
-            parameterset, request=request)):
+                parameterset, request=request)):
             pass
 
         form = DynamicForm(request.POST)
@@ -2950,7 +3019,7 @@ def add_par(request, parentObject, otype, stype):
     valid = True
 
     if request.method == 'POST':
-
+        request = remove_csrf_token(request)
         class DynamicForm(create_datafile_add_form(
             schema.namespace, parentObject, request=request)):
             pass
@@ -3280,7 +3349,6 @@ def stage_files_to_dataset(request, dataset_id):
     """
     Takes a JSON list of filenames to import from the staging area to this
     dataset.
-
     """
     if not has_dataset_write(request, dataset_id):
         return HttpResponseForbidden()
@@ -3307,3 +3375,9 @@ def stage_files_to_dataset(request, dataset_id):
 
     email = {'email': user.email}
     return HttpResponse(json.dumps(email), status=201)
+
+
+def user_guide(request):
+    c = Context({})
+    return HttpResponse(render_response_index(request,
+                        'tardis_portal/user_guide.html', c))
