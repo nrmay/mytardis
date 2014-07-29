@@ -117,11 +117,16 @@ Select: <a class="dataset_selector_all btn btn-mini">All</a> / <a class="dataset
   </td>
   <td style="width: 110px">
     <div class="btn-group pull-right">
-      {% if has_download_permissions %}
+      {% if has_download_permissions and not datafile.get_download_url == None %}
       <a  class="btn"
           href="{{ datafile.get_download_url }}"
           title="Download">
           <i class="icon-download-alt icon-large"></i>
+      </a>
+      {% endif %}
+      {% if datafile.get_download_url == None %}
+      <a class="btn" title="File not found!">
+          <i class="icon-exclamation-sign icon-large"></i>
       </a>
       {% endif %}
       {% if has_write_permissions and not immutable %}
