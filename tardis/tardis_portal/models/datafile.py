@@ -111,10 +111,13 @@ class Dataset_File(models.Model):
         return reverse('view_datafile', kwargs={'datafile_id': self.id})
 
     def get_download_url(self):
-        replica = self.get_preferred_replica()
-        if replica:
-            return replica.get_download_url()
-        else:
+        try:
+            replica = self.get_preferred_replica()
+            if replica:
+                return replica.get_download_url()
+            else:
+                return None
+        except:
             return None
 
     def get_file(self):
