@@ -70,7 +70,7 @@ Select: <a class="dataset_selector_all btn btn-mini">All</a> / <a class="dataset
 {% for datafile in datafiles.object_list %}
 <tr class="datafile search_match_file">
   <td>
-    {% if has_download_permissions %}
+    {% if has_download_permissions and not datafile.get_download_url == None %}
     <input type="checkbox" style="" class="datafile_checkbox" name="datafile" value="{{datafile.id}}" />
     {% endif %}
   </td>
@@ -79,9 +79,11 @@ Select: <a class="dataset_selector_all btn btn-mini">All</a> / <a class="dataset
       <a  class="filelink datafile_name"
           href="{{ datafile.get_view_url }}"
           title="View"
-          target="_blank">{{ datafile.filename }}</a>
+          target="_blank">{{ datafile.filename }}</a>   
     {% else %}
-    <span class="datafile_name">{{ datafile.filename }}</span>
+    <span class="datafile_name" 
+      {% if datafile.get_download_url == None %}style="color: red;"{% endif %}
+      >{{ datafile.filename }}</span>
     {% endif %}
     {% if datafile.size %}<span style="margin-right: 5px">({{ datafile.size|filesizeformat }})</span>{% endif %}
     {% if has_download_permissions and datafile.get_view_url %}
