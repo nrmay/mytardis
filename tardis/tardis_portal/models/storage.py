@@ -1,5 +1,6 @@
 import os
-from os import path
+import logging
+import pickle
 import random
 
 from django.conf import settings
@@ -9,8 +10,6 @@ import django.core.files.storage as django_storage
 
 from celery.contrib.methods import task
 
-import logging
-import pickle
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +38,7 @@ class StorageBox(models.Model):
     CACHE = 3
     TEMPORARY = 4
     TYPE_UNKNOWN = 5
+    BUNDLE = 6
     # end state values
 
     # translate type attributes to constants
@@ -47,18 +47,21 @@ class StorageBox(models.Model):
         'receiving': TEMPORARY,
         'tape': TAPE,
         'disk': DISK,
+        'bundle': BUNDLE,
     }
 
     # storage types that provide instantaneous access
     online_types = [CACHE,
                     DISK,
-                    TEMPORARY]
+                    TEMPORARY,
+                    BUNDLE]
 
     # storage types that do not provide instantaneous access
     offline_types = [TAPE, ]
 
     # when file access is requested, try in this order
     type_order = [CACHE,
+                  BUNDLE,
                   DISK,
                   TAPE,
                   TEMPORARY,
