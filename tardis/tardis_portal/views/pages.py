@@ -13,7 +13,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ImproperlyConfigured
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.core.urlresolvers import reverse
 from django.db import connection
@@ -114,6 +114,7 @@ def use_multimodal_login(fn):
         c['SAML2_ENABLED'] = getattr(settings,'SAML2_ENABLED', False)
         
         if c['RAPID_CONNECT_ENABLED']:
+<<<<<<< HEAD
             c['RAPID_CONNECT_LOGIN_URL'] = getattr(
                     settings.RAPID_CONNECT_CONFIG,
                     'authnrequest_url')
@@ -122,6 +123,17 @@ def use_multimodal_login(fn):
             c['CAS_SERVER_URL'] = getattr(settings.CAS_SERVER_URL, '')
             c['CAS_SERVICE_URL'] = getattr(settings.CAS_SERVICE_URL, '')
             
+=======
+            c['RAPID_CONNECT_LOGIN_URL'] = \
+                getattr(settings, 'RAPID_CONNECT_CONFIG', {}).get(
+                    'authnrequest_url',
+                    None)
+
+            if not c['RAPID_CONNECT_LOGIN_URL']:
+                raise ImproperlyConfigured(
+                    "RAPID_CONNECT_CONFIG['authnrequest_url'] must be "
+                    "configured in settings if RAPID_CONNECT_ENABLED is True.")
+>>>>>>> 63c47ea67a06b71866341e5f9ef3035ef5fa016d
         return c
 
     return add_multimodal_login_settings
@@ -256,6 +268,11 @@ class DatasetView(TemplateView):
 
         dataset_id = dataset.id
         upload_method = getattr(settings, "UPLOAD_METHOD", False)
+        max_images_in_carousel = getattr(settings, "MAX_IMAGES_IN_CAROUSEL", 0)
+        if max_images_in_carousel:
+            carousel_slice = ":%s" % max_images_in_carousel
+        else:
+            carousel_slice = ":"
 
         c.update(
             {'dataset': dataset,
@@ -272,6 +289,7 @@ class DatasetView(TemplateView):
                  dataset_id),
              'upload_method': upload_method,
              'push_to_enabled': PushToConfig.name in settings.INSTALLED_APPS,
+             'carousel_slice': carousel_slice,
              }
         )
 
