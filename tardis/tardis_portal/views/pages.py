@@ -114,16 +114,7 @@ def use_multimodal_login(fn):
         c['SAML2_ENABLED'] = getattr(settings,'SAML2_ENABLED', False)
         
         if c['RAPID_CONNECT_ENABLED']:
-<<<<<<< HEAD
-            c['RAPID_CONNECT_LOGIN_URL'] = getattr(
-                    settings.RAPID_CONNECT_CONFIG,
-                    'authnrequest_url')
-        
-        if c['CAS_ENABLED']:
-            c['CAS_SERVER_URL'] = getattr(settings.CAS_SERVER_URL, '')
-            c['CAS_SERVICE_URL'] = getattr(settings.CAS_SERVICE_URL, '')
-            
-=======
+
             c['RAPID_CONNECT_LOGIN_URL'] = \
                 getattr(settings, 'RAPID_CONNECT_CONFIG', {}).get(
                     'authnrequest_url',
@@ -133,7 +124,7 @@ def use_multimodal_login(fn):
                 raise ImproperlyConfigured(
                     "RAPID_CONNECT_CONFIG['authnrequest_url'] must be "
                     "configured in settings if RAPID_CONNECT_ENABLED is True.")
->>>>>>> 63c47ea67a06b71866341e5f9ef3035ef5fa016d
+
         return c
 
     return add_multimodal_login_settings
