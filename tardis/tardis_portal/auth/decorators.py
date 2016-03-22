@@ -30,7 +30,7 @@
 #
 from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
 from django.http import HttpResponseRedirect
 from django.db.models import Q
 from django.conf import settings
@@ -231,11 +231,25 @@ def is_group_admin(request, group_id):
 
 
 def group_ownership_required(f):
+    """
+    A decorator for Django views that validates if a user is a group admin,
+    'staff' or 'superuser' prior to further processing the request.
+    Unauthenticated requests are redirected to the login page. If the
+    user making the request satisfies none of these criteria, an error response
+    is returned.
 
+    :param f: A Django view function
+    :type f: types.FunctionType
+    :return: A Django view function
+    :rtype: types.FunctionType
+    """
     def wrap(request, *args, **kwargs):
+        user = request.user
         if not request.user.is_authenticated():
             return HttpResponseRedirect('/login?next=%s' % request.path)
-        if not is_group_admin(request, kwargs['group_id']):
+        if not (is_group_admin(request, kwargs['group_id']) or
+                user.is_staff or
+                user.is_superuser):
             return return_response_error(request)
         return f(request, *args, **kwargs)
 
@@ -245,11 +259,25 @@ def group_ownership_required(f):
 
 
 def experiment_ownership_required(f):
+    """
+    A decorator for Django views that validates if a user is an owner of an
+    experiment, 'staff' or 'superuser' prior to further processing the request.
+    Unauthenticated requests are redirected to the login page. If the
+    user making the request satisfies none of these criteria, an error response
+    is returned.
 
+    :param f: A Django view function
+    :type f: types.FunctionType
+    :return: A Django view function
+    :rtype: types.FunctionType
+    """
     def wrap(request, *args, **kwargs):
-        if not request.user.is_authenticated():
+        user = request.user
+        if not user.is_authenticated():
             return HttpResponseRedirect('/login?next=%s' % request.path)
-        if not has_experiment_ownership(request, kwargs['experiment_id']):
+        if not (has_experiment_ownership(request, kwargs['experiment_id']) or
+                user.is_staff or
+                user.is_superuser):
             return return_response_error(request)
         return f(request, *args, **kwargs)
 
@@ -260,10 +288,20 @@ def experiment_ownership_required(f):
 
 def experiment_access_required(f):
 
-    def wrap(request, *args, **kwargs):
+    def wrap(*args, **kwargs):
+        # We find the request as either the first or second argument.
+        # This is so it can be used for the 'get' method on class-based
+        # views (where the first argument is 'self') and also with traditional
+        # view functions (where the first argument is the request).
+        # TODO: An alternative would be to create a mixin for the ExperimentView
+        #       and similar classes, like AccessRequiredMixin
+        request = args[0]
+        if not isinstance(request, HttpRequest):
+            request = args[1]
+
         if not has_experiment_access(request, kwargs['experiment_id']):
             return return_response_error(request)
-        return f(request, *args, **kwargs)
+        return f(*args, **kwargs)
 
     wrap.__doc__ = f.__doc__
     wrap.__name__ = f.__name__
@@ -297,10 +335,20 @@ def dataset_download_required(f):
 
 def dataset_access_required(f):
 
-    def wrap(request, *args, **kwargs):
+    def wrap(*args, **kwargs):
+        # We find the request as either the first or second argument.
+        # This is so it can be used for the 'get' method on class-based
+        # views (where the first argument is 'self') and also with traditional
+        # view functions (where the first argument is the request).
+        # TODO: An alternative would be to create a mixin for the DatasetView
+        #       and similar classes, like AccessRequiredMixin
+        request = args[0]
+        if not isinstance(request, HttpRequest):
+            request = args[1]
+
         if not has_dataset_access(request, kwargs['dataset_id']):
             return return_response_error(request)
-        return f(request, *args, **kwargs)
+        return f(*args, **kwargs)
 
     wrap.__doc__ = f.__doc__
     wrap.__name__ = f.__name__

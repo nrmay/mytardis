@@ -4,12 +4,7 @@ echo This is a guide only, please either edit or run appropriate commands manual
 exit
 
 # for Ubuntu 14.04
-# sudo apt-get update
-# sudo apt-get install python-pip git libxml2-dev libxslt1-dev python-dev zlib1g-dev python-wand
-# sudo apt-get install python-virtualenv virtualenvwrapper python-psycopg2 python-yaml ipython
-# sudo apt-get install python-anyjson python-bs4 python-billiard python-feedparser python-html5lib
-# sudo apt-get install python-httplib2 python-pystache python-crypto python-flexmock python-dateutil
-# sudo apt-get install libldap2-dev libsasl2-dev libssl-dev
+# sudo bash install-ubuntu-requirements.sh
 # # optionally:
 # # sudo apt-get install memcached python-memcache
 
@@ -40,8 +35,7 @@ python -c "import os; from random import choice; key_line = '%sSECRET_KEY=\"%s\"
 
 python test.py
 # for empty databases, sync all and fake migrate, otherwise run a real migration
-python mytardis.py syncdb --all
-python mytardis.py migrate --fake
+python mytardis.py migrate
 python mytardis.py createcachetable default_cache
 python mytardis.py createcachetable celery_lock_cache
 python mytardis.py collectstatic
