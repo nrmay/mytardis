@@ -21,6 +21,7 @@ from django.http import HttpResponse, HttpResponseRedirect, \
 from django.shortcuts import redirect
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
+from django_cas_ng.signals import cas_user_authenticated
 
 from tardis.tardis_portal.auth import auth_service
 from tardis.tardis_portal.auth.localdb_auth import auth_key as localdb_auth_key
@@ -29,8 +30,35 @@ from tardis.tardis_portal.forms import ManageAccountForm, CreateUserPermissionsF
 from tardis.tardis_portal.models import JTI, UserProfile, UserAuthentication
 from tardis.tardis_portal.shortcuts import render_response_index
 from tardis.tardis_portal.views.utils import _redirect_303
+from django.dispatch.dispatcher import receiver
+from tardis.tardis_portal.auth.utils import get_or_create_user
+from tardis.tardis_portal.views.pages import get_multimodal_context_data
 
 logger = logging.getLogger(__name__)
+
+
+@receiver(cas_user_authenticated)
+def cas_callback(sender, **kwargs):
+    logger.debug("start!")
+
+    # CAS authorization is disabled, so don't process anything.
+    if not settings.LOGIN_FRONTENDS['cas']['enabled'] :
+        raise PermissionDenied
+
+    ''' TODO: handle user and check user profile...
+    '''
+   
+    try:
+        username = kwargs['user']
+        email = '%s@%s' % (username, settings.LOGIN_HOME_ORGANIZATION)
+        user, created = get_or_create_user('cas', username, email)
+        if created:
+            logger.debug('user created!')
+          
+    except Exception, e:
+        logger.error("failed to retrieve user, with exception: %s" % e )
+    
+    return
 
 
 @csrf_exempt
@@ -41,7 +69,8 @@ def rcauth(request):
 
     # Rapid Connect authorization is disabled, so don't
     # process anything.
-    if not settings.RAPID_CONNECT_ENABLED:
+    if ( not settings.LOGIN_FRONTENDS['aaf']['enabled'] and 
+         not settings.LOGIN_FRONTENDS['aafe']['enabled'] ) :
         raise PermissionDenied
 
     try:
@@ -209,13 +238,10 @@ def create_user(request):
         'tardis_portal/ajax/create_user.html', c))
     return response
 
-
 def login(request):
     '''
     handler for login page
     '''
-    from tardis.tardis_portal.auth import auth_service
-
     if request.user.is_authenticated():
         # redirect the user to the home page if he is trying to go to the
         # login page
@@ -240,6 +266,8 @@ def login(request):
              'error': True,
              'loginForm': LoginForm()}
 
+        c = get_multimodal_context_data(c, request)
+    
         return HttpResponseForbidden(
             render_response_index(request, 'tardis_portal/login.html', c))
 
@@ -249,12 +277,15 @@ def login(request):
         next_page = u.path
     else:
         next_page = '/'
+        
     c = {'loginForm': LoginForm(),
          'next_page': next_page}
-
-    c['RAPID_CONNECT_ENABLED'] = settings.RAPID_CONNECT_ENABLED
-    c['RAPID_CONNECT_LOGIN_URL'] = settings.RAPID_CONNECT_CONFIG[
-        'authnrequest_url']
+    
+    c = get_multimodal_context_data(c, request)
+    
+    #c['RAPID_CONNECT_ENABLED'] = settings.RAPID_CONNECT_ENABLED
+    #c['RAPID_CONNECT_LOGIN_URL'] = settings.RAPID_CONNECT_CONFIG[
+    #    'authnrequest_url']
 
     return HttpResponse(render_response_index(request,
                         'tardis_portal/login.html', c))
