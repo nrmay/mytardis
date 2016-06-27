@@ -266,7 +266,7 @@ def login(request):
              'error': True,
              'loginForm': LoginForm()}
 
-        c = get_multimodal_context_data(c, request)
+        c = get_multimodal_context_data(c)
     
         return HttpResponseForbidden(
             render_response_index(request, 'tardis_portal/login.html', c))
@@ -281,7 +281,7 @@ def login(request):
     c = {'loginForm': LoginForm(),
          'next_page': next_page}
     
-    c = get_multimodal_context_data(c, request)
+    c = get_multimodal_context_data(c)
     
     #c['RAPID_CONNECT_ENABLED'] = settings.RAPID_CONNECT_ENABLED
     #c['RAPID_CONNECT_LOGIN_URL'] = settings.RAPID_CONNECT_CONFIG[
