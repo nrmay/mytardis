@@ -264,7 +264,7 @@ class IndexView(TemplateView):
         The index view, intended to render the front page of the MyTardis site
         listing recent experiments.
 
-        This default view can be overriden by defining a dictionary INDEX_VIEWS 
+        This default view can be overriden by defining a dictionary INDEX_VIEWS
         in settings which maps SITE_ID's or domain names to an alternative view
         function (similar to the DATASET_VIEWS or EXPERIMENT_VIEWS overrides).
 
@@ -400,7 +400,7 @@ class DatasetView(TemplateView):
         The index view, intended to render the front page of the MyTardis site
         listing recent experiments.
 
-        This default view can be overriden by defining a dictionary INDEX_VIEWS 
+        This default view can be overriden by defining a dictionary INDEX_VIEWS
         in settings which maps SITE_ID's or domain names to an alternative view
         function (similar to the DATASET_VIEWS or EXPERIMENT_VIEWS overrides).
 
