@@ -194,7 +194,7 @@
                   		style="width: 80px; text-align: center;" 
               	{% if LOGIN_FRONTEND_DEFAULT|lower = 'aaf' %}
                   		href={{ AAF_LOGIN_URL }}
-              	{% if LOGIN_FRONTEND_DEFAULT|lower = 'aafe' %}
+              	{% elif LOGIN_FRONTEND_DEFAULT|lower = 'aafe' %}
                   		href={{ AAF_LOGIN_URL }}?entityID={{ AAF_ENTITY_URL }}
               	{% elif LOGIN_FRONTEND_DEFAULT|lower = 'cas' %}
                   		href={% url 'django_cas_ng.views.login' %}
