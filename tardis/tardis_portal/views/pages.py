@@ -127,7 +127,7 @@ def use_rapid_connect(fn):
 
 def use_multimodal_login(fn):
     """
-    A decorator that adds appropriate settings for login frontends to a 
+    A decorator that adds appropriate settings for login frontends to a
     get_context_data method.
 
     :param fn: A get_context_data function/method.
@@ -140,18 +140,18 @@ def use_multimodal_login(fn):
 
     def add_multimodal_login_settings(cxt, *args, **kwargs):
         logger.debug("start!")
-        
+
         c = fn(cxt, *args, **kwargs)
-        
-        c['LOGIN_DEFAULT'] = getattr(settings,'LOGIN_FRONTEND_DEFAULT', 
+
+        c['LOGIN_DEFAULT'] = getattr(settings,'LOGIN_FRONTEND_DEFAULT',
                                      'local')
         c['LOGIN_MULTIMODAL'] = False
         c['LOCAL_ENABLED'] = False
         c['AAF_ENABLED'] = False
         c['AAFE_ENABLED'] = False
         c['CAS_ENABLED'] = False
-        c['SAML_ENABLED'] = False    
-        
+        c['SAML_ENABLED'] = False
+
         # Add backward compatibility for RAPID_CONNECT_ENABLED setting.
         try:
             if settings.RAPID_CONNECT_ENABLED:
@@ -159,21 +159,20 @@ def use_multimodal_login(fn):
                 c['LOGIN_DEFAULT'] = 'aaf'
         except Exception, e:
             logger.debug("Settings RAPID_CONNECT_ENABLED failed with: %s" % e)
-            pass
 
         # --- process dictionary: settings.LOGIN_FRONTENDS --- #
-        enabled_count = 0       
+        enabled_count = 0
         for key in settings.LOGIN_FRONTENDS:
             label = settings.LOGIN_FRONTENDS[key]['label']
             enabled = settings.LOGIN_FRONTENDS[key]['enabled']
-            
+
             if enabled:
                 enabled_count += 1
-                
+
                 if key == 'local':
                     c['LOCAL_ENABLED'] = True
                     c['LOCAL_DISPLAY'] = label
-                
+
                 if key == 'aaf' or id == 'aafe':
                     c['AAF_LOGIN_URL'] = settings.RAPID_CONNECT_CONFIG[
                                                     'authnrequest_url']
@@ -182,11 +181,11 @@ def use_multimodal_login(fn):
                             "RAPID_CONNECT_CONFIG['authnrequest_url'] "
                             "must be configured in settings "
                             "if AAF or AAFE is enabled.")
-                    
+
                     if key == 'aaf':
                         c['AAF_ENABLED'] = True
                         c['AAF_DISPLAY'] = label
-                    
+
                     if key == 'aafe':
                         c['AAFE_ENABLED'] = True
                         c['AAFE_DISPLAY'] = label
@@ -197,13 +196,13 @@ def use_multimodal_login(fn):
                                 "RAPID_CONNECT_CONFIG['entityID'] "
                                 "must be configured in settings "
                                 "if AAFE is enabled.")
-                
+
                 if key == 'cas':
                     c['CAS_ENABLED'] = True
                     c['CAS_DISPLAY'] = label
                     c['CAS_SERVER_URL'] = settings.CAS_SERVER_URL
                     c['CAS_SERVICE_URL'] = settings.CAS_SERVICE_URL
-                    
+
                     if not c['CAS_SERVER_URL']:
                         raise ImproperlyConfigured("CAS_SERVER_URL "
                             "must be configured in settings if CAS is enabled.")
@@ -224,7 +223,7 @@ def use_multimodal_login(fn):
 def get_multimodal_context_data(cxt, **kwargs):
     ''' Bridge for the decorator to be called using a context parameter.
     '''
-    logger.debug("start!") 
+    logger.debug("start!")
     return cxt
 
 
@@ -265,8 +264,8 @@ class IndexView(TemplateView):
         The index view, intended to render the front page of the MyTardis site
         listing recent experiments.
 
-        This default view can be overriden by defining a dictionary INDEX_VIEWS in
-        settings which maps SITE_ID's or domain names to an alternative view
+        This default view can be overriden by defining a dictionary INDEX_VIEWS 
+        in settings which maps SITE_ID's or domain names to an alternative view
         function (similar to the DATASET_VIEWS or EXPERIMENT_VIEWS overrides).
 
         :param request: a HTTP request object
@@ -401,8 +400,8 @@ class DatasetView(TemplateView):
         The index view, intended to render the front page of the MyTardis site
         listing recent experiments.
 
-        This default view can be overriden by defining a dictionary INDEX_VIEWS in
-        settings which maps SITE_ID's or domain names to an alternative view
+        This default view can be overriden by defining a dictionary INDEX_VIEWS 
+        in settings which maps SITE_ID's or domain names to an alternative view
         function (similar to the DATASET_VIEWS or EXPERIMENT_VIEWS overrides).
 
         :param request: a HTTP request object
@@ -442,9 +441,9 @@ def about(request):
              settings, 'CUSTOM_ABOUT_SECTION_TEMPLATE',
              'tardis_portal/about_include.html'),
          }
-    
+
     c = get_multimodal_context_data(c)
-    
+
     return HttpResponse(render_response_index(request,
                         'tardis_portal/about.html', c))
 
@@ -469,14 +468,13 @@ def my_data(request):
 def _resolve_view(view_function_or_string):
     """
     Takes a string representing a 'module.app.view' function, a view function
-    itself, or View class. Imports the module and returns the view function, eg
-    'tardis.apps.my_custom_app.views.my_special_view' will
-    return the my_special_view function defined in views.py in
-    that app.
+    itself, or View class. Imports the module and returns the view function,
+    e.g. 'tardis.apps.my_custom_app.views.my_special_view' will return the
+    my_special_view function defined in views.py in that app.
     Auto detects class-based views.
 
-    Will raise ImportError or AttributeError if the module or
-    view function don't exist, respectively.
+    Will raise ImportError or AttributeError if the module or view function
+    does not exist, respectively.
 
     :param view_function_or_string: A string representing the view,
                                     or a function itself
@@ -549,9 +547,10 @@ class ExperimentView(TemplateView):
         c['has_download_permissions'] = \
             authz.has_experiment_download_access(request, experiment.id)
         if request.user.is_authenticated():
-            c['is_owner'] = authz.has_experiment_ownership(request, experiment.id)
+            c['is_owner'] = authz.has_experiment_ownership(request,
+                                                        experiment.id)
             c['has_read_or_owner_ACL'] = authz.has_read_or_owner_ACL(request,
-                                                                     experiment.id)
+                                                        experiment.id)
 
         # Enables UI elements for the publication form
         c['pub_form_enabled'] = 'tardis.apps.publication_forms' in \
@@ -588,10 +587,12 @@ class ExperimentView(TemplateView):
             {'name': 'Description',
              'viewfn': 'tardis.tardis_portal.views.experiment_description'},
             {'name': 'Metadata',
-             'viewfn': 'tardis.tardis_portal.views.retrieve_experiment_metadata'},
+             'viewfn': 'tardis.tardis_portal.views.retrieve_experiment_metadata'
+             },
             {'name': 'Sharing', 'viewfn': 'tardis.tardis_portal.views.share'},
             {'name': 'Transfer Datasets',
-             'viewfn': 'tardis.tardis_portal.views.experiment_dataset_transfer'},
+             'viewfn': 'tardis.tardis_portal.views.experiment_dataset_transfer'
+             },
         ]
         appnames = []
         appurls = []
