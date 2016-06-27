@@ -91,6 +91,7 @@ def site_routed_view(request, _default_view, _site_mappings, *args, **kwargs):
     view_fn = _resolve_view(_default_view)
     return view_fn(request, *args, **kwargs)
 
+
 def use_rapid_connect(fn):
     """
     A decorator that adds AAF Rapid Connect settings to a get_context_data
@@ -123,6 +124,7 @@ def use_rapid_connect(fn):
 
     return add_rapid_connect_settings
 
+
 def use_multimodal_login(fn):
     """
     A decorator that adds appropriate settings for login frontends to a 
@@ -135,9 +137,11 @@ def use_multimodal_login(fn):
     :rtype: types.FunctionType
     """
 
+
     def add_multimodal_login_settings(cxt, *args, **kwargs):
-        c = fn(cxt, *args, **kwargs)
+        logger.debug("start!")
         
+        c = fn(cxt, *args, **kwargs)
         
         c['LOGIN_DEFAULT'] = getattr(settings,'LOGIN_FRONTEND_DEFAULT', 
                                      'local')
@@ -149,9 +153,13 @@ def use_multimodal_login(fn):
         c['SAML_ENABLED'] = False    
         
         # Add backward compatibility for RAPID_CONNECT_ENABLED setting.
-        if settings.RAPID_CONNECT_ENABLED:
-            settings.LOGIN_FRONTENDS['aaf']['enabled'] = True
-            c['LOGIN_DEFAULT'] = 'aaf'
+        try:
+            if settings.RAPID_CONNECT_ENABLED:
+                settings.LOGIN_FRONTENDS['aaf']['enabled'] = True
+                c['LOGIN_DEFAULT'] = 'aaf'
+        except Exception, e:
+            logger.debug("Settings RAPID_CONNECT_ENABLED failed with: %s" % e)
+            pass
 
         # --- process dictionary: settings.LOGIN_FRONTENDS --- #
         enabled_count = 0       
@@ -213,7 +221,7 @@ def use_multimodal_login(fn):
 
 
 @use_multimodal_login
-def get_multimodal_context_data(self, cxt, **kwargs):
+def get_multimodal_context_data(cxt, **kwargs):
     ''' Bridge for the decorator to be called using a context parameter.
     '''
     logger.debug("start!") 
