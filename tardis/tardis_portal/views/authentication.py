@@ -132,7 +132,7 @@ def rcauth(request):
                     django_logout(request)
                     raise PermissionDenied
 
-            user = auth_service.get_or_create_user(user_args)
+            user = auth_service.get_or_create_user(user_args,authMethod='aaf')
             if user is not None:
                 user.backend = 'django.contrib.auth.backends.ModelBackend'
                 djauth.login(request, user)

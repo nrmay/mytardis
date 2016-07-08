@@ -380,13 +380,13 @@ LOGIN_FRONTEND_DEFAULT = "local"
 
 ''' LOGIN_FRONTENDS defines the different methods that are supported by the
 mutli-modal login interface. By default only the 'mytardis' login is enabled.
-Fields include: id, display_name, is_enabled.
+Fields include: id, display label, enabled flag, and .
 '''
 LOGIN_FRONTENDS = {
-    'local': {'label':'Local', 'enabled':True },
-    'aaf':   {'label':'AAF',   'enabled':False },
-    'aafe':  {'label':'Home',  'enabled':False },
-    'cas':   {'label':'CAS',   'enabled':False },
+    'local': {'label':'Local', 'enabled':True,  'groups': set()},
+    'aaf':   {'label':'AAF',   'enabled':False, 'groups': set()},
+    'aafe':  {'label':'Home',  'enabled':False, 'groups': set()},
+    'cas':   {'label':'CAS',   'enabled':False, 'groups': set()},
 }
 
 ''' The home organization is used to strip the domain from email addresses to
