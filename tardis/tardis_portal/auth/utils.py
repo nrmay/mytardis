@@ -9,7 +9,7 @@ from django.contrib.auth.models import User, Group
 from tardis.tardis_portal.models import UserProfile, UserAuthentication
 
 
-def get_or_create_user(auth_method, user_id, email=''):
+def get_or_create_user(auth_method, user_id, email='', targetedID=''):
     try:
         # check if the given username in combination with the
         # auth method is already in the UserAuthentication table
@@ -17,12 +17,12 @@ def get_or_create_user(auth_method, user_id, email=''):
             authenticationMethod=auth_method).userProfile.user
         created = False
     except UserAuthentication.DoesNotExist:
-        user = create_user(auth_method, user_id, email)
+        user = create_user(auth_method, user_id, email, targetedID)
         created = True
     return (user, created)
 
 
-def create_user(auth_method, user_id, email=''):
+def create_user(auth_method, user_id, email='', targetedID=''):
     # length of the maximum username
     max_length = 254
 
@@ -48,7 +48,7 @@ def create_user(auth_method, user_id, email=''):
                                     password=password,
                                     email=email)
     user.save()
-    userProfile = configure_user(user)
+    userProfile = configure_user(user, targetedID)
     userAuth = UserAuthentication(
         userProfile=userProfile,
         username=user_id, authenticationMethod=auth_method)
@@ -57,7 +57,7 @@ def create_user(auth_method, user_id, email=''):
     return user
 
 
-def configure_user(user):
+def configure_user(user, targetedID=''):
     """ Configure a user account that has just been created by adding
     the user to the default groups and creating a UserProfile.
 
@@ -70,5 +70,7 @@ def configure_user(user):
         except Group.DoesNotExist:
             pass
     user.userprofile.isDjangoAccount = False
+    if targetedID:
+        user.userprofile.rapidConnectEduPersonTargetedID = targetedID
     user.userprofile.save()
     return user.userprofile

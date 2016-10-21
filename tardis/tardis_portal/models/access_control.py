@@ -16,6 +16,7 @@ class UserProfile(models.Model):
     UserProfile class is an extension to the Django standard user model.
 
     :attribute isDjangoAccount: is the user a local DB user
+    :attribute rapidConnectEduPersonTargetedID: the targeted id provided by AAF
     :attribute user: a foreign key to the
        :class:`django.contrib.auth.models.User`
     """
@@ -73,9 +74,9 @@ class GroupAdmin(models.Model):
     """GroupAdmin links the Django User and Group tables for group
     administrators
 
-    :attribute user: a forign key to the
+    :attribute user: a foreign key to the
        :class:`django.contrib.auth.models.User`
-    :attribute group: a forign key to the
+    :attribute group: a foreign key to the
        :class:`django.contrib.auth.models.Group`
     """
 
