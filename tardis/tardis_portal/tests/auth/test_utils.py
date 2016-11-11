@@ -6,7 +6,7 @@ from tardis.tardis_portal.models import UserProfile, UserAuthentication
 
 
 class GetOrCreateUserTestCase (TestCase):
-    
+
     def setUp(self):
         pass
     def tearDown(self):
@@ -21,20 +21,20 @@ class GetOrCreateUserTestCase (TestCase):
         user_id = "adminX1"
         email = "admin_x@dummy.edu.au"
         targetedID = None
-        
+
         (result, created) = get_or_create_user(method, user_id, email)
         assert result is not None
-        assert created is True    
-    
+        assert created is True
+
         profile = UserProfile.objects.get(user=result)
         assert profile is not None
         # assert profile.isDjangoAccount is not None
         # assert profile.isDjangoAccount == True
-        assert profile.rapidConnectEduPersonTargetedID is None                
+        assert profile.rapidConnectEduPersonTargetedID is None
 
         auth = UserAuthentication.objects.get(userProfile=profile)
         assert auth is not None
-        print "auth(%s,%s,%s)" % (auth.username, 
+        print "auth(%s,%s,%s)" % (auth.username,
                                   auth.authenticationMethod,
                                   auth.getAuthMethodDescription)
         assert auth.username == user_id
@@ -48,7 +48,7 @@ class GetOrCreateUserTestCase (TestCase):
     Test creation of CAS user
     '''
     def testCASUser(self):
-        
+
         return
 
 
@@ -56,7 +56,7 @@ class GetOrCreateUserTestCase (TestCase):
     Test creation of AAF user
     '''
     def testAAFUser(self):
-        
+
         return
 
 
@@ -64,5 +64,5 @@ class GetOrCreateUserTestCase (TestCase):
     Test creation of AAFE user
     '''
     def testAAFEUser(self):
-        
+
         return

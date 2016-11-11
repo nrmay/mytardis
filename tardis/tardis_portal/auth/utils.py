@@ -52,7 +52,7 @@ def create_user(auth_method, user_id, email='', targetedID=''):
     user.save()
 
     # create object: UserProfile
-    userProfile = configure_user(user, 
+    userProfile = configure_user(user,
                                  targetedID)
 
     # create object: UserAuthentication
@@ -77,10 +77,10 @@ def configure_user(user, targetedID=''):
             user.groups.add(group)
         except Group.DoesNotExist:
             pass
-    
+
     user.userprofile.isDjangoAccount = False
     if targetedID:
         user.userprofile.rapidConnectEduPersonTargetedID = targetedID
     user.userprofile.save()
-    
+
     return user.userprofile
