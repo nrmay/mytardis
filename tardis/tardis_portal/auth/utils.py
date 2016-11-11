@@ -44,17 +44,25 @@ def create_user(auth_method, user_id, email='', targetedID=''):
         pass
 
     password = User.objects.make_random_password()
+
+    # create object: User
     user = User.objects.create_user(username=unique_username,
                                     password=password,
                                     email=email)
     user.save()
-    userProfile = configure_user(user, targetedID)
-    userAuth = UserAuthentication(
-        userProfile=userProfile,
-        username=user_id, authenticationMethod=auth_method)
+
+    # create object: UserProfile
+    userProfile = configure_user(user, 
+                                 targetedID)
+
+    # create object: UserAuthentication
+    userAuth = UserAuthentication(username=user_id,
+                                  userProfile=userProfile,
+                                  authenticationMethod=auth_method)
     userAuth.save()
 
     return user
+
 
 
 def configure_user(user, targetedID=''):
@@ -69,8 +77,10 @@ def configure_user(user, targetedID=''):
             user.groups.add(group)
         except Group.DoesNotExist:
             pass
+    
     user.userprofile.isDjangoAccount = False
     if targetedID:
         user.userprofile.rapidConnectEduPersonTargetedID = targetedID
     user.userprofile.save()
+    
     return user.userprofile

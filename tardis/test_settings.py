@@ -73,6 +73,7 @@ def get_all_tardis_apps():
 INSTALLED_APPS += get_all_tardis_apps() + (
     'tardis.apps.equipment',
     'django_nose',
+    'lettuce.django',
 )
 
 DEDUP_INSTALLED_APPS = []
