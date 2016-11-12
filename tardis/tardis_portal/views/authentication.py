@@ -1,13 +1,13 @@
 """
 views that have to do with authentication
 """
+from urlparse import urlparse
+from httplib import CREATED
 
 import logging
 import sys
 import jwt
 import pwgen
-
-from urlparse import urlparse
 
 from django.conf import settings
 from django.contrib import auth as djauth
@@ -34,7 +34,6 @@ from tardis.tardis_portal.models import JTI, UserProfile, UserAuthentication
 from tardis.tardis_portal.shortcuts import render_response_index
 from tardis.tardis_portal.views.utils import _redirect_303
 from tardis.tardis_portal.views.pages import get_multimodal_context_data
-from httplib import CREATED
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +47,8 @@ def cas_callback(sender, **kwargs):
             try:
                 home_email = '%s@%s' % (value, settings.LOGIN_HOME_ORGANIZATION)
                 authMethod = 'cas'
-                logger.debug("user[%s] authMethod[%s] email[%s]"% (
-			value,authMethod,email))
+                logger.debug("authMethod[%s] user[%s] email[%s]"% ('cas', value,
+                                                                   home_email))
                 user, created = get_or_create_user('cas', value,
                                                    email=home_email)
                 if created:
