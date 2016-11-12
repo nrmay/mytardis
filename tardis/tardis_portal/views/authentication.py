@@ -34,6 +34,7 @@ from tardis.tardis_portal.models import JTI, UserProfile, UserAuthentication
 from tardis.tardis_portal.shortcuts import render_response_index
 from tardis.tardis_portal.views.utils import _redirect_303
 from tardis.tardis_portal.views.pages import get_multimodal_context_data
+from httplib import CREATED
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +147,11 @@ def rcauth(request):
                     django_logout(request)
                     raise PermissionDenied
 
-            user = get_or_create_user(user_args,authMethod='aaf')
+            user, created = get_or_create_user(user_id,
+                                      email=institution_email.lower(),
+                                      targetedID=edupersontargetedid,
+                                      auth_method='aaf')
+
             if user is not None:
                 user.backend = 'django.contrib.auth.backends.ModelBackend'
                 djauth.login(request, user)
