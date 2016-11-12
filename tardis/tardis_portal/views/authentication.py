@@ -2,12 +2,12 @@
 views that have to do with authentication
 """
 
-from urlparse import urlparse
-
 import logging
 import sys
 import jwt
 import pwgen
+
+from urlparse import urlparse
 
 from django.conf import settings
 from django.contrib import auth as djauth
@@ -46,11 +46,12 @@ def cas_callback(sender, **kwargs):
         logger.debug('kwargs[%s] = %s' % ( str(key), str(value) ))
         if key == 'user':
             try:
-                email = '%s@%s' % (value, settings.LOGIN_HOME_ORGANIZATION)
+                home_email = '%s@%s' % (value, settings.LOGIN_HOME_ORGANIZATION)
                 authMethod = 'cas'
                 logger.debug("user[%s] authMethod[%s] email[%s]"% (
 			value,authMethod,email))
-                user, created = get_or_create_user('cas', value, email)
+                user, created = get_or_create_user('cas', value,
+                                                   email=home_email)
                 if created:
                     logger.debug('user created = %s' % str(user))
                 else:
@@ -147,10 +148,9 @@ def rcauth(request):
                     django_logout(request)
                     raise PermissionDenied
 
-            user, created = get_or_create_user(user_id,
+            user, created = get_or_create_user('aaf', user_id,
                                       email=institution_email.lower(),
-                                      targetedID=edupersontargetedid,
-                                      auth_method='aaf')
+                                      targetedID=edupersontargetedid)
 
             if user is not None:
                 user.backend = 'django.contrib.auth.backends.ModelBackend'
