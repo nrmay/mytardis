@@ -138,7 +138,7 @@ def rcauth(request):
 
             # Check for an email collision.
             for matching_user in UserProfile.objects.filter(
-                    user__email__iexact=user_args['email']):
+                    user__email__exact=user_args['email']):
                 if (matching_user.rapidConnectEduPersonTargetedID is not None
                     and matching_user.rapidConnectEduPersonTargetedID !=
                         edupersontargetedid):

@@ -5,9 +5,9 @@ DATABASES = {
     'default': {
         'ENGINE':   "django.db.backends.mysql",
         'NAME':     "mytardis",
-        'USER':     "root",
-        'PASSWORD': "mysql",
-        'HOST':     "mysql",
+        'USER':     "mytardis",
+        'PASSWORD': "dtofaam123",
+        'HOST':     "localhost",
         'PORT':     "3306",
         'STORAGE_ENGINE':   "InnoDB",
         'OPTIONS': {
