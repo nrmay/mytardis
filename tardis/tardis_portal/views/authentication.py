@@ -45,16 +45,17 @@ def cas_callback(sender, **kwargs):
         logger.debug('kwargs[%s] = %s' % ( str(key), str(value) ))
         if key == 'user':
             try:
+                auth_method = 'cas'
                 home_email = '%s@%s' % (value, settings.LOGIN_HOME_ORGANIZATION)
-                authMethod = 'cas'
-                logger.debug("authMethod[%s] user[%s] email[%s]"% ('cas', value,
-                                                                   home_email))
-                user, created = get_or_create_user('cas', value,
+                logger.debug("auth_method[%s] user_id[%s] email[%s]" % (
+                                        auth_method, value, home_email))
+                user, created = get_or_create_user(auth_method, value,
                                                    email=home_email)
                 if created:
                     logger.debug('user created = %s' % str(user))
                 else:
-                    logger.debug('user creation failed!')
+                    if user is None:
+                        logger.debug('user creation failed!')
             except Exception, e:
                 logger.error("get_or_create_user['%s'] failed with %s" % (
                              value, e))
