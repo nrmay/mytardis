@@ -2,6 +2,7 @@ from django.test import TestCase
 import logging
 
 from django.contrib.auth.models import User, Group
+from django.dispatch import Signal
 
 from tardis.tardis_portal.auth.utils import get_or_create_user
 from tardis.tardis_portal.models import UserProfile, UserAuthentication
@@ -22,33 +23,61 @@ class GetOrCreateUserTestCase (TestCase):
     '''
     Verify that a user is well formed.
     '''
-    def verifyUser(self, auth_method, user_id):
+    def _verifyUser(self, auth_method, user_id):
+
+        # verify Users exist
+        all_users = User.objects.all()
+        no_users = len(all_users)
+        print 'len(all_users) = ', len(all_users)
+        print 'no of users = ', no_users
+        self.assertIsNotNone(all_users, 'There are no users!')
+        self.assertGreater(no_users,0)
+        print 'all_users[0].username = ', all_users[0].username
 
         # verify User
-        userX = User.objects.get(username=user_id)
-        assert userX is not None
-        assert userX.username is not None
-        assert userX.username == user_id
-        logger.debug("User object is valid!")
+        users = User.objects.filter(username=user_id)
+        self.assertIsNotNone(users, 'users list is None!')
+        self.assertTrue( (len(users) > 0) , 'users list is empty!')
 
-        # verify UserProfile
-        profile = UserProfile.objects.get(user=userX)
-        assert profile is not None
-        assert profile.isDjangoAccount is not None
-        assert profile.isDjangoAccount is False
-        assert profile.rapidConnectEduPersonTargetedID is None
-        logger.debug("UserProfile object is valid!")
+        auth_method_found = False
+        for userX in users:
+            self.assertIsNotNone(userX.username, 'user.username is None!')
+            self.assertEquals(userX.username, user_id, 'username[%s] not expected[%s]!' % (
+                         userX.username, user_id))
+            logger.debug("User object is valid!")
 
-        # verify UserAuthentication
-        auth = UserAuthentication.objects.get(userProfile=profile)
-        assert auth is not None
-        logger.debug("auth(%s,%s,%s)" % (auth.username,
+            # verify UserProfile
+            profile = UserProfile.objects.get(user=userX)
+            self.assertIsNotNone(profile, 'UserProfile is None!')
+            self.assertIsNotNone(profile.isDjangoAccount, 'isDjangoAccount is None!')
+            if auth_method == 'localdb':
+                self.assertTrue(profile.isDjangoAccount, 
+		    'isDjangoAccount is False, but auth_method is %s' % auth_method)
+            if auth_method == 'aaf' or auth_method == 'aafe':
+                self.assertIsNotNone(profile.rapidConnectEduPersonTargetedID, 
+                    'targetedID is None, but auth_method is %s' % auth_method)
+                self.assertTrue(profile.rapidConnectEduPersonTargetedID,
+                    'targetedID is empty, buth auth_method is %s' % auth_method)
+            logger.debug("UserProfile object is valid!")
+
+            # verify UserAuthentication
+            auth = UserAuthentication.objects.get(userProfile=profile)
+            self.assertIsNotNone(auth, 'UserAuthentication is None!')
+            logger.debug("auth(%s,%s,%s)" % (auth.username,
                                   auth.authenticationMethod,
                                   auth.getAuthMethodDescription))
-        assert auth.username == user_id
-        assert auth.authenticationMethod is not None
-        assert auth.authenticationMethod == auth_method
-        logger.debug("UserAuthentication object is valid!")
+            self.assertIsNotNone(auth.username, 'UserAuthentication username is None!')
+            self.assertEquals(auth.username, user_id, 'username[%s] not expected[%s]!' % (
+                         auth.username, user_id))
+            self.assertIsNotNone(auth.authenticationMethod, 'auth.auth_method is None!')
+            if auth.authenticationMethod == auth_method:
+                auth_method_found = True
+                logger.debug("UserAuthentication object is valid!")
+
+        logger.debug('auth_method_found = %s' % auth_method_found)
+        self.assertTrue(auth_method_found, 
+            'UserAuthentication not found for username[%s] and auth_method[%s]!' % (
+                auth.username, auth_method)) 
 
         return True
 
@@ -60,13 +89,12 @@ class GetOrCreateUserTestCase (TestCase):
         method = "localdb"
         user_id = "adminX1"
         email = "admin_x@dummy.edu.au"
-        targetedID = None
 
         # create user
         (result, created) = get_or_create_user(method, user_id, email)
-        assert result is not None
-        assert created is True
-        assert self.verifyUser(method,user_id) is True
+        self.assertIsNotNone(result, 'returned localdb user is None!')
+        self.assertTrue(created, 'returned created flag is False')
+        self.assertTrue(self._verifyUser(method,user_id), 'localdb user not verified!')
 
         return
 
@@ -79,8 +107,8 @@ class GetOrCreateUserTestCase (TestCase):
         user_id = 'casUser1'
 
         # create user
-        cas_callback({'user': user_id})
-        assert self.verifyUser(method, user_id)
+        cas_callback(self.__class__, user=user_id)
+        self.assertTrue(self._verifyUser(method, user_id), 'cas user not verified!')
 
         return
 

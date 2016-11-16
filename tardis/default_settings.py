@@ -399,6 +399,7 @@ LOGIN_FRONTENDS = {
    'aaf':   {'label':'AFF',        'enabled':False },
    'aafe':  {'label':'HOME',       'enabled':False },
    'cas':   {'label':'CAS Server', 'enabled':False },
+   'http':  {'label':'HTTP',       'enabled':False },
 }
 
 # CAS Server default settings

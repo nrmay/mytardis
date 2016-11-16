@@ -6,9 +6,8 @@ Created on Dec 15, 2011
 
 import urllib2
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from tardis.tardis_portal.auth.interfaces import AuthProvider
-from tardis.tardis_portal.auth.utils import configure_user
 
 class HttpBasicEndpointAuth(AuthProvider):
     '''
@@ -59,7 +58,7 @@ class HttpBasicEndpointAuth(AuthProvider):
         except User.DoesNotExist:
             user = User.objects.create_user(username, '')
             user.save()
-            configure_user(user)
+            self._configure_user(user)
 
         # We don't want a localdb user created, so don't use a dict
         return user
@@ -82,3 +81,22 @@ class HttpBasicEndpointAuth(AuthProvider):
             return result
         except urllib2.HTTPError:
             return None
+
+    def _configure_user(self, user):
+        """ Configure a user account that has just been created by adding
+        the user to the default groups and creating a UserProfile.
+
+        :param user: the User instance for the newly created account
+        """
+        for group_name in settings.NEW_USER_INITIAL_GROUPS:
+            try:
+                group = Group.objects.get(name=group_name)
+                user.groups.add(group)
+            except Group.DoesNotExist:
+                pass
+
+        user.userprofile.isDjangoAccount = False
+        user.userprofile.save()
+
+        return user.userprofile
+
