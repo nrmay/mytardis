@@ -12,8 +12,8 @@ from tardis.tardis_portal.models import UserProfile, UserAuthentication
 logger = logging.getLogger(__name__)
 
 def get_or_create_user(auth_method, user_id, email='', targetedID=''):
-    """ Get a User, or Create a User if one does not exist for this 
-    combination of auth_method and user_id. 
+    """ Get a User, or Create a User if one does not exist for this
+    combination of auth_method and user_id.
 
     :param auth_method: the authentication method: 'aaf', 'cas', 'localdb'.
     :param user_id: the user identifier for this user.
@@ -40,7 +40,7 @@ def get_or_create_user(auth_method, user_id, email='', targetedID=''):
 
 def create_user(auth_method, user_id, email='', targetedID=''):
     """ Create a User for this combination of auth_method and user_id.
- 
+
     :param auth_method: the authentication method: 'aaf', 'cas', 'localdb'.
     :param user_id: the user identifier for this user.
     :param email: the user's email address.
@@ -66,7 +66,6 @@ def create_user(auth_method, user_id, email='', targetedID=''):
                 :max_length - len(str(i))] + str(i)
     except User.DoesNotExist:
         logger.debug('User.DoesNotExists!')
-        pass
 
     password = User.objects.make_random_password()
 
@@ -89,7 +88,7 @@ def create_user(auth_method, user_id, email='', targetedID=''):
         user.userprofile.isDjangoAccount = True
     user.userprofile.rapidConnectEduPersonTargetedID = None
     if targetedID:
-        userProfile.rapidConnectEduPersonTargetedID = targetedID
+        user.userprofile.rapidConnectEduPersonTargetedID = targetedID
     user.userprofile.save()
     logger.debug('userProfile created!')
 
@@ -101,4 +100,3 @@ def create_user(auth_method, user_id, email='', targetedID=''):
     logger.debug('userAuthentication created!')
 
     return user
-

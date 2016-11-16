@@ -1,6 +1,6 @@
-from django.test import TestCase
 import logging
 
+from django.test import TestCase
 from django.contrib.auth.models import User, Group
 from django.dispatch import Signal
 
@@ -51,10 +51,10 @@ class GetOrCreateUserTestCase (TestCase):
             self.assertIsNotNone(profile, 'UserProfile is None!')
             self.assertIsNotNone(profile.isDjangoAccount, 'isDjangoAccount is None!')
             if auth_method == 'localdb':
-                self.assertTrue(profile.isDjangoAccount, 
+                self.assertTrue(profile.isDjangoAccount,
 		    'isDjangoAccount is False, but auth_method is %s' % auth_method)
             if auth_method == 'aaf' or auth_method == 'aafe':
-                self.assertIsNotNone(profile.rapidConnectEduPersonTargetedID, 
+                self.assertIsNotNone(profile.rapidConnectEduPersonTargetedID,
                     'targetedID is None, but auth_method is %s' % auth_method)
                 self.assertTrue(profile.rapidConnectEduPersonTargetedID,
                     'targetedID is empty, buth auth_method is %s' % auth_method)
@@ -75,9 +75,9 @@ class GetOrCreateUserTestCase (TestCase):
                 logger.debug("UserAuthentication object is valid!")
 
         logger.debug('auth_method_found = %s' % auth_method_found)
-        self.assertTrue(auth_method_found, 
+        self.assertTrue(auth_method_found,
             'UserAuthentication not found for username[%s] and auth_method[%s]!' % (
-                auth.username, auth_method)) 
+                auth.username, auth_method))
 
         return True
 

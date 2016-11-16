@@ -99,4 +99,3 @@ class HttpBasicEndpointAuth(AuthProvider):
         user.userprofile.save()
 
         return user.userprofile
-
