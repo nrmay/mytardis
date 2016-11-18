@@ -67,12 +67,12 @@ def rcauth(request):
     logger.debug('rcauth() start!')
     # Only POST is supported on this URL.
     if request.method != 'POST':
-        raise PermissionDenied
+        raise PermissionDenied('Request not POST!')
 
     # Rapid Connect authorization is disabled, so don't process anything.
     if ( not settings.LOGIN_FRONTENDS['aaf']['enabled'] and
          not settings.LOGIN_FRONTENDS['aafe']['enabled'] ):
-        raise PermissionDenied
+        raise PermissionDenied('AAF not enabled!')
 
     try:
         # Verifies signature and expiry time
@@ -146,7 +146,7 @@ def rcauth(request):
                     del request.session['jwt']
                     del request.session['jws']
                     django_logout(request)
-                    raise PermissionDenied
+                    raise PermissionDenied('targetedID not matched!')
 
             user, created = get_or_create_user('aaf', user_id,
                                       email=institution_email.lower(),
@@ -156,21 +156,23 @@ def rcauth(request):
                 user.backend = 'django.contrib.auth.backends.ModelBackend'
                 djauth.login(request, user)
                 return redirect('/')
+
         else:
             del request.session['attributes']
             del request.session['jwt']
             del request.session['jws']
             django_logout(request)
-            raise PermissionDenied  # Error: Not for this audience
+            raise PermissionDenied('Invalid Audience!')  # Error: Not for this audience
+
     except jwt.ExpiredSignature:
         del request.session['attributes']
         del request.session['jwt']
         del request.session['jws']
         django_logout(request)
-        raise PermissionDenied  # Error: Security cookie has expired
-    except Exception, e:
-        logger.debug('rcauth() failed with: %s' % e)
-        raise PermissionDenied
+        raise PermissionDenied('Security Cookie has expired!')  # Error: Security cookie has expired
+    except Exception as e:
+        logger.debug('Rapic Connect failed with %s' % type(e).__name__)
+        raise PermissionDenied('Rapid Connect failed with %s' % type(e).__name__)
 
 
 @login_required

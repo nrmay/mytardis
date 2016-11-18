@@ -1,12 +1,15 @@
 import logging
+import traceback
 
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User, Group
 from django.dispatch import Signal
+from django.core.exceptions import PermissionDenied
+from django.conf import settings
 
 from tardis.tardis_portal.auth.utils import get_or_create_user
 from tardis.tardis_portal.models import UserProfile, UserAuthentication
-from tardis.tardis_portal.views.authentication import cas_callback
+from tardis.tardis_portal.views.authentication import cas_callback, rcauth
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +120,36 @@ class GetOrCreateUserTestCase (TestCase):
     Test creation of AAF user
     '''
     def testAAFUser(self):
+        method = 'aaf'
+        user_id = 'aafUser1'
+        targetedID = 'ALK/^9)6,123L;K98QWERKJL'
+        request = RequestFactory().get('/auth/jwt/rc')
+        try:
+            rcauth(request)
+            self.fail('rcauth() did not raise PermissionDenied')
+        except PermissionDenied:
+            pass
+        except Exception, e:
+            self.fail('Invalid exception raised[%s] not[PermissionDenied]' % e)
 
+        # format valid request
+        request.method = "POST"
+        attributes = {}
+        attributes['id'] = user_id
+        attributes['email'] = '%s@%s' % (user_id, settings.LOGIN_HOME_ORGANIZATION)
+        attributes['edupersionscopedaffiliation'] = '%s@%s' % ('staff', settings.LOGIN_HOME_ORGANIZATION)
+        attributes['edupersontargetedid'] = targetedID
+        session = self.client.session
+        session['attributes'] = attributes
+        request.session = session      
+
+        try: 
+            rcauth(request)
+        except Exception as ex:
+            traceback.print_exc()
+            self.fail('rcauth() raised exception: %s[%s]' % (type(ex).__name__, ex.args[0]))
+
+        self.assertTrue(self._verifyUser(method, user_id), 'aaf user not verified!')
         return
 
 
