@@ -115,6 +115,7 @@ NOTE: if set the LOGIN_PRINCIPAL_DOMAIN will be stripped from the
       eg. set the domain to 'example.com' to convert 'u99999@example.com'
       into a user id of 'u99999'.
 '''
+RAPID_CONNECT_ENABLED = False
 RAPID_CONNECT_CONFIG = {}
 RAPID_CONNECT_CONFIG['iss'] = 'https://rapid.test.aaf.edu.au'
 RAPID_CONNECT_CONFIG['aud'] = 'https://<url of the tardis instance>/'
