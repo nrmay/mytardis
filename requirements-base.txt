@@ -43,4 +43,4 @@ rdfextras==0.4
 rdflib==4.0.1
 six==1.10.0
 wsgiref==0.1.2
-django_cas_ng
+django-cas-ng
