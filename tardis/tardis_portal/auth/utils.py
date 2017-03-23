@@ -49,8 +49,6 @@ def create_user(auth_method, user_id, email=''):
                                     email=email)
     user.save()
     userProfile = configure_user(user)
-
-    # create UserAuthentication
     userAuth = UserAuthentication(
         userProfile=userProfile,
         username=user_id, authenticationMethod=auth_method)

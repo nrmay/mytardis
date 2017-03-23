@@ -405,14 +405,14 @@ urlpatterns = patterns(
     # Display Views
     (r'^display/', include(display_urls)),
 
-    # Login/out
+    # Local authentication
     (r'^login/$', 'tardis.tardis_portal.views.login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
 
     # Rapid Connect
     (r'^rc/', include(rapidconnect_urls)),
 
-    # Rapid Connect
+    # Central Authentication Service
     (r'^cas/', include(cas_urls)),
 
     # Admin

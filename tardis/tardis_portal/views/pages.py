@@ -104,7 +104,6 @@ def use_multimodal_login(fn):
     :rtype: types.FunctionType
     """
 
-
     def add_multimodal_login_settings(cxt, *args, **kwargs):
         logger.debug("start!")
 

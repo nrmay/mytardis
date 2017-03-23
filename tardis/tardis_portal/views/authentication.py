@@ -216,8 +216,8 @@ def create_user(request):
             user = User.objects.create_user(username, email, password)
 
             authentication = UserAuthentication(userProfile=user.userprofile,
-                                            username=username,
-                                            authenticationMethod=authMethod)
+                                                username=username,
+                                                authenticationMethod=authMethod)
             authentication.save()
 
     except ValidationError:
@@ -282,10 +282,6 @@ def login(request):
          'next_page': next_page}
 
     c = get_multimodal_context_data(c)
-
-    #c['RAPID_CONNECT_ENABLED'] = settings.RAPID_CONNECT_ENABLED
-    #c['RAPID_CONNECT_LOGIN_URL'] = settings.RAPID_CONNECT_CONFIG[
-    #    'authnrequest_url']
 
     return HttpResponse(render_response_index(request,
                         'tardis_portal/login.html', c))
