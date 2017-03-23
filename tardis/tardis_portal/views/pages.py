@@ -408,7 +408,7 @@ def about(request):
              settings, 'CUSTOM_ABOUT_SECTION_TEMPLATE',
              'tardis_portal/about_include.html'),
          }
-    
+
     c = get_multimodal_context_data(c)
 
     return HttpResponse(render_response_index(request,
@@ -672,7 +672,7 @@ def stats(request):
         'datafile_count': DataFile.objects.all().count(),
         'datafile_size': datafile_size,
     }
-    
+
     c = get_multimodal_context_data(c)
 
     return HttpResponse(render_response_index(request,
@@ -770,7 +770,7 @@ def public_data(request):
     '''
     c = {'public_experiments':
          Experiment.safe.public().order_by('-update_time'), }
-    
+
     c = get_multimodal_context_data(c)
 
     return HttpResponse(render_response_index(
