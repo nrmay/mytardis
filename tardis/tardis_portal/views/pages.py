@@ -32,11 +32,11 @@ from tardis.tardis_portal.auth.decorators import (
     has_experiment_download_access, has_experiment_write, has_dataset_write)
 from tardis.tardis_portal.auth.localdb_auth import django_user
 from tardis.tardis_portal.forms import ExperimentForm, DatasetForm
-from tardis.tardis_portal.models import Experiment, Dataset, DataFile, ObjectACL
+from tardis.tardis_portal.models import Experiment, Dataset, DataFile, \
+    ObjectACL
 from tardis.tardis_portal.shortcuts import render_response_index, \
     return_response_error, return_response_not_found, get_experiment_referer, \
     render_response_search
-from tardis.tardis_portal.util import dirname_with_id
 from tardis.tardis_portal.views.utils import (
     _redirect_303, _add_protocols_and_organizations, HttpResponseSeeAlso)
 
@@ -52,8 +52,8 @@ def site_routed_view(request, _default_view, _site_mappings, *args, **kwargs):
     default.
 
     The intention is to define {site: view} mappings in settings.py, and use
-    this wrapper view in urls.py to allow a single URL to be routed to different
-    views depending on the Site in the request.
+    this wrapper view in urls.py to allow a single URL to be routed to
+    different views depending on the Site in the request.
 
     :param request: a HTTP request object
     :type request: :class:`django.http.HttpRequest`
@@ -125,112 +125,10 @@ def use_rapid_connect(fn):
     return add_rapid_connect_settings
 
 
-def use_multimodal_login(fn):
-    """
-    A decorator that adds appropriate settings for login frontends to a
-    get_context_data method.
-
-    :param fn: A get_context_data function/method.
-    :type fn: types.FunctionType
-    :return: A get_context_data function that adds settings to its
-             output context.
-    :rtype: types.FunctionType
-    """
-
-
-    def add_multimodal_login_settings(cxt, *args, **kwargs):
-        logger.debug("start!")
-
-        c = fn(cxt, *args, **kwargs)
-
-        c['LOGIN_DEFAULT'] = getattr(settings,'LOGIN_FRONTEND_DEFAULT',
-                                     'local')
-        c['LOGIN_MULTIMODAL'] = False
-        c['LOCAL_ENABLED'] = False
-        c['AAF_ENABLED'] = False
-        c['AAFE_ENABLED'] = False
-        c['CAS_ENABLED'] = False
-        c['SAML_ENABLED'] = False
-
-        # Add backward compatibility for RAPID_CONNECT_ENABLED setting.
-        try:
-            if settings.RAPID_CONNECT_ENABLED:
-                settings.LOGIN_FRONTENDS['aaf']['enabled'] = True
-                c['LOGIN_DEFAULT'] = 'aaf'
-        except Exception, e:
-            logger.debug("Settings RAPID_CONNECT_ENABLED failed with: %s" % e)
-
-        # --- process dictionary: settings.LOGIN_FRONTENDS --- #
-        enabled_count = 0
-        for key in settings.LOGIN_FRONTENDS:
-            label = settings.LOGIN_FRONTENDS[key]['label']
-            enabled = settings.LOGIN_FRONTENDS[key]['enabled']
-
-            if enabled:
-                enabled_count += 1
-
-                if key == 'local':
-                    c['LOCAL_ENABLED'] = True
-                    c['LOCAL_DISPLAY'] = label
-
-                if key == 'aaf' or id == 'aafe':
-                    c['AAF_LOGIN_URL'] = settings.RAPID_CONNECT_CONFIG[
-                                                    'authnrequest_url']
-                    if not c['AAF_LOGIN_URL']:
-                        raise ImproperlyConfigured(
-                            "RAPID_CONNECT_CONFIG['authnrequest_url'] "
-                            "must be configured in settings "
-                            "if AAF or AAFE is enabled.")
-
-                    if key == 'aaf':
-                        c['AAF_ENABLED'] = True
-                        c['AAF_DISPLAY'] = label
-
-                    if key == 'aafe':
-                        c['AAFE_ENABLED'] = True
-                        c['AAFE_DISPLAY'] = label
-                        c['AAF_ENTITY_URL'] = settings.RAPID_CONNECT_CONFIG[
-                                                        'entityID']
-                        if not c['AAF_ENTITY_URL']:
-                            raise ImproperlyConfigured(
-                                "RAPID_CONNECT_CONFIG['entityID'] "
-                                "must be configured in settings "
-                                "if AAFE is enabled.")
-
-                if key == 'cas':
-                    c['CAS_ENABLED'] = True
-                    c['CAS_DISPLAY'] = label
-                    c['CAS_SERVER_URL'] = settings.CAS_SERVER_URL
-                    c['CAS_SERVICE_URL'] = settings.CAS_SERVICE_URL
-
-                    if not c['CAS_SERVER_URL']:
-                        raise ImproperlyConfigured("CAS_SERVER_URL "
-                            "must be configured in settings if CAS is enabled.")
-                    if not c['CAS_SERVICE_URL']:
-                        raise ImproperlyConfigured("CAS_SERVICE_URL "
-                            "must be configured in settings if CAS is enabled.")
-
-        # --- turn on multimodal dropdown list --- #
-        if enabled_count > 1:
-            c['LOGIN_MULTIMODAL'] = True
-
-        return c
-
-    return add_multimodal_login_settings
-
-
-@use_multimodal_login
-def get_multimodal_context_data(cxt, **kwargs):
-    ''' Bridge for the decorator to be called using a context parameter.
-    '''
-    logger.debug("start!")
-    return cxt
-
-
 class IndexView(TemplateView):
     template_name = 'tardis_portal/index.html'
 
-    @use_multimodal_login
+    @use_rapid_connect
     def get_context_data(self, request, **kwargs):
         """
         Prepares the values to be passed to the default index view - a list of
@@ -441,9 +339,6 @@ def about(request):
              settings, 'CUSTOM_ABOUT_SECTION_TEMPLATE',
              'tardis_portal/about_include.html'),
          }
-
-    c = get_multimodal_context_data(c)
-
     return HttpResponse(render_response_index(request,
                         'tardis_portal/about.html', c))
 
@@ -455,11 +350,35 @@ def my_data(request):
     delegate to custom views depending on settings
     '''
 
+    owned_experiments = \
+        Experiment.safe.owned(request.user).order_by('-update_time')
+    shared_experiments = \
+        Experiment.safe.shared(request.user).order_by('-update_time')
+
+    try:
+        page_number = int(request.GET.get('page', '1'))
+    except ValueError:
+        page_number = 1
+
+    owned_paginator = \
+        Paginator(owned_experiments, settings.OWNED_EXPS_PER_PAGE)
+    try:
+        owned_exps_page = owned_paginator.page(page_number)
+    except (EmptyPage, InvalidPage):
+        owned_exps_page = owned_paginator.page(owned_paginator.num_pages)
+
+    shared_paginator = \
+        Paginator(shared_experiments, settings.SHARED_EXPS_PER_PAGE)
+    try:
+        shared_exps_page = shared_paginator.page(page_number)
+    except (EmptyPage, InvalidPage):
+        shared_exps_page = shared_paginator.page(owned_paginator.num_pages)
+
     c = {
-        'owned_experiments': Experiment.safe.owned(request.user)
-        .order_by('-update_time'),
-        'shared_experiments': Experiment.safe.shared(request.user)
-        .order_by('-update_time'),
+        'owned_experiments': owned_exps_page,
+        'owned_paginator': owned_paginator,
+        'shared_experiments': shared_exps_page,
+        'shared_paginator': shared_paginator
     }
     return HttpResponse(render_response_index(
         request, 'tardis_portal/my_data.html', c))
@@ -468,13 +387,14 @@ def my_data(request):
 def _resolve_view(view_function_or_string):
     """
     Takes a string representing a 'module.app.view' function, a view function
-    itself, or View class. Imports the module and returns the view function,
-    e.g. 'tardis.apps.my_custom_app.views.my_special_view' will return the
-    my_special_view function defined in views.py in that app.
+    itself, or View class. Imports the module and returns the view function, eg
+    'tardis.apps.my_custom_app.views.my_special_view' will
+    return the my_special_view function defined in views.py in
+    that app.
     Auto detects class-based views.
 
-    Will raise ImportError or AttributeError if the module or view function
-    does not exist, respectively.
+    Will raise ImportError or AttributeError if the module or
+    view function don't exist, respectively.
 
     :param view_function_or_string: A string representing the view,
                                     or a function itself
@@ -547,10 +467,10 @@ class ExperimentView(TemplateView):
         c['has_download_permissions'] = \
             authz.has_experiment_download_access(request, experiment.id)
         if request.user.is_authenticated():
-            c['is_owner'] = authz.has_experiment_ownership(request,
-                                                        experiment.id)
-            c['has_read_or_owner_ACL'] = authz.has_read_or_owner_ACL(request,
-                                                        experiment.id)
+            c['is_owner'] = \
+                authz.has_experiment_ownership(request, experiment.id)
+            c['has_read_or_owner_ACL'] = \
+                authz.has_read_or_owner_ACL(request, experiment.id)
 
         # Enables UI elements for the publication form
         c['pub_form_enabled'] = 'tardis.apps.publication_forms' in \
@@ -587,12 +507,12 @@ class ExperimentView(TemplateView):
             {'name': 'Description',
              'viewfn': 'tardis.tardis_portal.views.experiment_description'},
             {'name': 'Metadata',
-             'viewfn': 'tardis.tardis_portal.views.retrieve_experiment_metadata'
-             },
+             'viewfn':
+             'tardis.tardis_portal.views.retrieve_experiment_metadata'},
             {'name': 'Sharing', 'viewfn': 'tardis.tardis_portal.views.share'},
             {'name': 'Transfer Datasets',
-             'viewfn': 'tardis.tardis_portal.views.experiment_dataset_transfer'
-             },
+             'viewfn':
+             'tardis.tardis_portal.views.experiment_dataset_transfer'},
         ]
         appnames = []
         appurls = []
@@ -601,7 +521,8 @@ class ExperimentView(TemplateView):
             try:
                 appnames.append(app['name'])
                 if 'viewfn' in app:
-                    appurls.append(reverse(app['viewfn'], args=[experiment.id]))
+                    appurls.append(reverse(app['viewfn'],
+                                   args=[experiment.id]))
                 elif 'url' in app:
                     appurls.append(app['url'])
             except:
@@ -679,7 +600,6 @@ def stats(request):
         'datafile_count': DataFile.objects.all().count(),
         'datafile_size': datafile_size,
     }
-    c = get_multimodal_context_data(c)
     return HttpResponse(render_response_index(request,
                         'tardis_portal/stats.html', c))
 
@@ -689,7 +609,6 @@ def user_guide(request):
         'user_guide_location': getattr(
             settings, 'CUSTOM_USER_GUIDE', 'user_guide/index.html'),
     }
-    c = get_multimodal_context_data(c)
     return HttpResponse(render_response_index(request,
                         'tardis_portal/user_guide.html', c))
 
@@ -701,6 +620,7 @@ def sftp_access(request):
     :param request: HttpRequest
     :return: HttpResponse
     """
+    from tardis.tardis_portal.download import make_mapper
     object_type = request.GET.get('object_type')
     object_id = request.GET.get('object_id')
     sftp_start_dir = ''
@@ -725,12 +645,13 @@ def sftp_access(request):
             if has_experiment_download_access(request, exp.id):
                 allowed_exps.append(exp)
         if len(allowed_exps) > 0:
+            path_mapper = make_mapper(settings.DEFAULT_PATH_MAPPER,
+                                      rootdir=None)
             exp = allowed_exps[0]
             path_parts = ['/home', request.user.username, 'experiments',
-                          dirname_with_id(exp.title, exp.id)]
+                          path_mapper(exp)]
             if dataset is not None:
-                path_parts.append(
-                    dirname_with_id(dataset.description, dataset.id))
+                path_parts.append(path_mapper(dataset))
             if datafile is not None:
                 path_parts.append(datafile.directory)
             sftp_start_dir = path.join(*path_parts)
@@ -770,7 +691,6 @@ def public_data(request):
     '''
     c = {'public_experiments':
          Experiment.safe.public().order_by('-update_time'), }
-    c = get_multimodal_context_data(c)
     return HttpResponse(render_response_index(
         request, 'tardis_portal/public_data.html', c))
 
@@ -822,7 +742,7 @@ def experiment_list_public(request):
         'experiments': Experiment.objects.exclude(private_filter)
                                          .order_by('-update_time'),
     }
-    c = get_multimodal_context_data(c)
+
     return HttpResponse(render_response_search(request,
                         'tardis_portal/experiment/list_public.html', c))
 

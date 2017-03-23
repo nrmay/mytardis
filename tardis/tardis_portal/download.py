@@ -48,7 +48,7 @@ from tardis.tardis_portal.views import return_response_not_found, \
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_ORGANIZATION = settings.DEFAULT_ARCHIVE_ORGANIZATION
+DEFAULT_ORGANIZATION = settings.DEFAULT_PATH_MAPPER
 
 
 def _create_download_response(request, datafile_id, disposition='attachment'):  # too complex # noqa
@@ -132,7 +132,7 @@ def _get_mapper_makers():
     global __mapper_makers
     if not __mapper_makers:
         __mapper_makers = {}
-        mappers = getattr(settings, 'ARCHIVE_FILE_MAPPERS', [])
+        mappers = getattr(settings, 'DOWNLOAD_PATH_MAPPERS', {})
         for (organization, mapper_desc) in mappers.items():
             mapper_fn = _safe_import(mapper_desc[0])
             if len(mapper_desc) >= 2:
@@ -172,7 +172,7 @@ def _safe_import(path):
             (mapper_module, mapper_fname))
 
 
-def _make_mapper(organization, rootdir):
+def make_mapper(organization, rootdir):
     if organization == 'classic':
         return classic_mapper(rootdir)
     else:
@@ -205,7 +205,6 @@ def _get_datafile_details_for_archive(mapper, datafiles):
     return res
 
 
-########### NEW DOWNLOAD ##############
 class UncachedTarStream(TarFile):
     '''
     Stream files into a compressed tar stream on the fly
@@ -234,8 +233,7 @@ class UncachedTarStream(TarFile):
             self.binary_buffer = io.BytesIO()
             self.gzipfile = gzip.GzipFile(bytes(filename), 'w',
                                           comp_level, self.binary_buffer)
-        else:
-            self.tar_size = self.compute_size()
+        self.tar_size = self.compute_size()
 
     def compute_size(self):
         total_size = 0
@@ -243,7 +241,8 @@ class UncachedTarStream(TarFile):
             df, name = fobj
             tarinfo = self.tarinfo_for_df(df, name)
             self.tarinfos[num] = tarinfo
-            tarinfo_buf = tarinfo.tobuf(self.format, self.encoding, self.errors)
+            tarinfo_buf = tarinfo.tobuf(self.format, self.encoding,
+                                        self.errors)
             self.tarinfo_bufs[num] = tarinfo_buf
             total_size += len(tarinfo_buf)
             size = int(tarinfo.size)
@@ -260,19 +259,17 @@ class UncachedTarStream(TarFile):
     def tarinfo_for_df(self, df, name):
         tarinfo = self.tarinfo(name)
         tarinfo.size = int(df.get_size())
-        mtime = None
-        dj_mtime = df.modification_time
+        try:
+            dj_mtime = df.modification_time or \
+                       df.get_preferred_dfo().modified_time
+        except Exception as e:
+            dj_mtime = None
+            logger.debug('cannot read m_time for file id'
+                         ' %d, exception %s' % (df.id, str(e)))
         if dj_mtime is not None:
-            mtime = dateformatter(dj_mtime, 'U')
+            tarinfo.mtime = float(dateformatter(dj_mtime, 'U'))
         else:
-            try:
-                fileobj = df.file_object
-                mtime = os.fstat(fileobj.fileno()).st_mtime
-            except:
-                raise ValueError('cannot read size for downloads')
-        if mtime is None:
-            mtime = time.time()
-        tarinfo.mtime = mtime
+            tarinfo.mtime = time.time()
         return tarinfo
 
     def compress(self, buf):
@@ -397,7 +394,7 @@ def _streaming_downloader(request, datafiles, rootdir, filename,
     private function to be called by wrappers
     creates download response with given files and names
     '''
-    mapper = _make_mapper(organization, rootdir)
+    mapper = make_mapper(organization, rootdir)
     if not mapper:
         return render_error_message(
             request, 'Unknown download organization: %s' % organization,
@@ -435,7 +432,13 @@ def _streaming_downloader(request, datafiles, rootdir, filename,
 def streaming_download_experiment(request, experiment_id, comptype='tgz',
                                   organization=DEFAULT_ORGANIZATION):
     experiment = Experiment.objects.get(id=experiment_id)
-    rootdir = experiment.title.replace(' ', '_')
+    if settings.EXP_SPACES_TO_UNDERSCORES:
+        rootdir = urllib.quote(
+            experiment.title.replace(' ', '_'),
+            safe=settings.SAFE_FILESYSTEM_CHARACTERS)
+    else:
+        rootdir = urllib.quote(
+            experiment.title, safe=settings.SAFE_FILESYSTEM_CHARACTERS)
     filename = '%s-complete.tar' % rootdir
 
     datafiles = DataFile.objects.filter(
@@ -448,7 +451,13 @@ def streaming_download_experiment(request, experiment_id, comptype='tgz',
 def streaming_download_dataset(request, dataset_id, comptype='tgz',
                                organization=DEFAULT_ORGANIZATION):
     dataset = Dataset.objects.get(id=dataset_id)
-    rootdir = urllib.quote(dataset.description.replace(' ', '_'), safe='')
+    if settings.DATASET_SPACES_TO_UNDERSCORES:
+        rootdir = urllib.quote(dataset.description.replace(' ', '_'),
+                               safe=settings.SAFE_FILESYSTEM_CHARACTERS)
+    else:
+        rootdir = urllib.quote(
+            dataset.description,
+            safe=settings.SAFE_FILESYSTEM_CHARACTERS)
     filename = '%s-complete.tar' % rootdir
 
     datafiles = DataFile.objects.filter(dataset=dataset)
@@ -470,15 +479,15 @@ def streaming_download_datafiles(request):  # too complex # noqa
     # TODO: intelligent selection of temp file versus in-memory buffering.
     logger.error('In download_datafiles !!')
     comptype = getattr(settings, 'DEFAULT_ARCHIVE_FORMATS', ['tar'])[0]
-    organization = getattr(settings, 'DEFAULT_ARCHIVE_ORGANIZATION', 'classic')
+    organization = getattr(settings, 'DEFAULT_PATH_MAPPER', 'classic')
     if 'comptype' in request.POST:
         comptype = request.POST['comptype']
     if 'organization' in request.POST:
         organization = request.POST['organization']
 
     if 'datafile' in request.POST or 'dataset' in request.POST:
-        if (len(request.POST.getlist('datafile')) > 0
-                or len(request.POST.getlist('dataset'))) > 0:
+        if len(request.POST.getlist('datafile')) > 0 \
+                or len(request.POST.getlist('dataset')) > 0:
 
             datasets = request.POST.getlist('dataset')
             datafiles = request.POST.getlist('datafile')
@@ -545,8 +554,14 @@ def streaming_download_datafiles(request):  # too complex # noqa
     except (KeyError, Experiment.DoesNotExist):
         experiment = iter(df_set).next().dataset.get_first_experiment()
 
-    filename = '%s-selection.tar' % experiment.title.replace(' ', '_')
-    rootdir = '%s-selection' % experiment.title.replace(' ', '_')
+    if settings.EXP_SPACES_TO_UNDERSCORES:
+        exp_title = experiment.title.replace(' ', '_')
+    else:
+        exp_title = experiment.title
+    exp_title = urllib.quote(exp_title,
+                             safe=settings.SAFE_FILESYSTEM_CHARACTERS)
+    filename = '%s-selection.tar' % exp_title
+    rootdir = '%s-selection' % exp_title
     return _streaming_downloader(request, df_set, rootdir, filename,
                                  comptype, organization)
 

@@ -743,6 +743,8 @@ def token_delete(request, token_id):
     if authz.has_experiment_ownership(request, token.experiment_id):
         token.delete()
         return HttpResponse('{"success": true}', content_type='application/json')
+    else:
+        return HttpResponse('{"success": false}', content_type='application/json')
 
 
 def token_login(request, token):
@@ -775,7 +777,6 @@ def share(request, experiment_id):
     if user.is_authenticated():
         c['is_owner'] = authz.has_experiment_ownership(request, experiment_id)
         c['is_superuser'] = user.is_superuser
-        c['is_staff'] = user.is_staff
 
     domain = Site.objects.get_current().domain
     public_link = experiment.public_access >= Experiment.PUBLIC_ACCESS_METADATA
