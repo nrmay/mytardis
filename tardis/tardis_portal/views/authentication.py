@@ -3,7 +3,6 @@ views that have to do with authentication
 """
 
 from urlparse import urlparse
-from httplib import import CREATED
 
 import logging
 import sys
