@@ -163,7 +163,7 @@ def rcauth(request):
             del request.session['jws']
             django_logout(request)
             raise PermissionDenied('Invalid Audience!')
-        
+
     except jwt.ExpiredSignature:
         del request.session['attributes']
         del request.session['jwt']
