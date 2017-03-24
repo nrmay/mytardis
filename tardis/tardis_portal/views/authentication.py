@@ -3,8 +3,10 @@ views that have to do with authentication
 """
 
 from urlparse import urlparse
+from httplib import import CREATED
 
 import logging
+import sys
 import jwt
 import pwgen
 
@@ -22,17 +24,16 @@ from django.shortcuts import redirect
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.dispatch.dispatcher import receiver
-
 from django_cas_ng.signals import cas_user_authenticated
 
 from tardis.tardis_portal.auth import auth_service
+from tardis.tardis_portal.auth.utils import get_or_create_user
 from tardis.tardis_portal.auth.localdb_auth import auth_key as localdb_auth_key
 from tardis.tardis_portal.forms import ManageAccountForm, \
      CreateUserPermissionsForm, LoginForm
 from tardis.tardis_portal.models import JTI, UserProfile, UserAuthentication
 from tardis.tardis_portal.shortcuts import render_response_index
 from tardis.tardis_portal.views.utils import _redirect_303
-from tardis.tardis_portal.auth.utils import get_or_create_user
 from tardis.tardis_portal.views.pages import get_multimodal_context_data
 
 logger = logging.getLogger(__name__)
@@ -40,24 +41,25 @@ logger = logging.getLogger(__name__)
 
 @receiver(cas_user_authenticated)
 def cas_callback(sender, **kwargs):
-    logger.debug("start!")
-
-    # CAS authorization is disabled, so don't process anything.
-    if not settings.LOGIN_FRONTENDS['cas']['enabled'] :
-        raise PermissionDenied
-
-    ''' TODO: handle user and check user profile...
-    '''
-
-    try:
-        username = kwargs['user']
-        email = '%s@%s' % (username, settings.LOGIN_HOME_ORGANIZATION)
-        user, created = get_or_create_user('cas', username, email)
-        if created:
-            logger.debug('user created!')
-
-    except Exception, e:
-        logger.error("failed to retrieve user, with exception: %s" % e )
+    logger.debug('_cas_callback() start!')
+    for key,value in kwargs.iteritems():
+        logger.debug('kwargs[%s] = %s' % ( str(key), str(value) ))
+        if key == 'user':
+            try:
+                auth_method = 'cas'
+                home_email = '%s@%s' % (value, settings.LOGIN_HOME_ORGANIZATION)
+                logger.debug("auth_method[%s] user_id[%s] email[%s]" % (
+                                        auth_method, value, home_email))
+                user, created = get_or_create_user(auth_method, value,
+                                                   email=home_email)
+                if created:
+                    logger.debug('user created = %s' % str(user))
+                else:
+                    if user is None:
+                        logger.debug('user creation failed!')
+            except Exception, e:
+                logger.error("get_or_create_user['%s'] failed with %s" % (
+                             value, e))
 
     return
 
@@ -66,12 +68,12 @@ def cas_callback(sender, **kwargs):
 def rcauth(request):
     # Only POST is supported on this URL.
     if request.method != 'POST':
-        raise PermissionDenied
+        raise PermissionDenied('Request not POST!')
 
     # Rapid Connect authorization is disabled, so don't process anything.
     if ( not settings.LOGIN_FRONTENDS['aaf']['enabled'] and
          not settings.LOGIN_FRONTENDS['aafe']['enabled'] ) :
-        raise PermissionDenied
+        raise PermissionDenied('AAF not enabled!')
 
     try:
         # Verifies signature and expiry time
@@ -100,6 +102,10 @@ def rcauth(request):
             request.session['jws'] = request.POST['assertion']
 
             institution_email = request.session['attributes']['mail']
+            edupersontargetedid = request.session['attributes'][
+                                                'edupersontargetedid']
+            principalname = request.session['attributes'][
+                                                'edupersonprincipalname']
 
             logger.debug('Successfully authenticated %s via Rapid Connect.' %
                          institution_email)
@@ -118,11 +124,22 @@ def rcauth(request):
                 'last_name': request.session['attributes']['surname'],
             }
 
+            # if a principal domain is set strip domain from
+            # 'edupersonprincipalname' and use remainder as user id.
+            try:
+                if settings.LOGIN_HOME_ORGANIZATION:
+                    domain = "@" + settings.LOGIN_HOME_ORGANIZATION
+                    if ';' not in principalname and \
+                        principalname.endswith(domain):
+                        user_id = principalname.replace(domain,'').lower()
+                        user_args['id'] = user_id
+            except:
+                logger.debug('check principal domain failed with: %s' %
+                             sys.exc_info()[0])
+
             # Check for an email collision.
-            edupersontargetedid = request.session['attributes'][
-                'edupersontargetedid']
             for matching_user in UserProfile.objects.filter(
-                    user__email__iexact=user_args['email']):
+                    user__email__exact=user_args['email']):
                 if (matching_user.rapidConnectEduPersonTargetedID is not None
                     and matching_user.rapidConnectEduPersonTargetedID !=
                         edupersontargetedid):
@@ -130,25 +147,34 @@ def rcauth(request):
                     del request.session['jwt']
                     del request.session['jws']
                     django_logout(request)
-                    raise PermissionDenied
+                    raise PermissionDenied('targetedID not matched!')
 
-            user = auth_service.get_or_create_user(user_args,authMethod='aaf')
+            user, created = get_or_create_user('aaf', user_id,
+                                      email=institution_email.lower(),
+                                      targetedID=edupersontargetedid)
+
             if user is not None:
                 user.backend = 'django.contrib.auth.backends.ModelBackend'
                 djauth.login(request, user)
                 return redirect('/')
+
         else:
             del request.session['attributes']
             del request.session['jwt']
             del request.session['jws']
             django_logout(request)
-            raise PermissionDenied  # Error: Not for this audience
+            raise PermissionDenied('Invalid Audience!')
+        
     except jwt.ExpiredSignature:
         del request.session['attributes']
         del request.session['jwt']
         del request.session['jws']
         django_logout(request)
-        raise PermissionDenied  # Error: Security cookie has expired
+        raise PermissionDenied('Security Cookie has expired!')
+
+    except Exception as e:
+        logger.debug('Rapid Connect failed with %s' % type(e).__name__)
+        raise PermissionDenied('Rapid Connect failed with %s' % type(e).__name__)
 
 
 @login_required

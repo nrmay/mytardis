@@ -113,6 +113,8 @@ NOTE: if set, the LOGIN_HOME_ORGANIZATION will be strip from the
 NOTE: the optional 'entityID' must be set if the 'aafe' login frontend is
       enabled. This parameter will be appended to the AAF login request
       to automatically redirect to the selected identity provider.
+      Refer to the following url for your organizations end-point:
+      https://manager.test.aaf.edu.au/federationregistry/membership/identityprovider/list
 '''
 RAPID_CONNECT_CONFIG = {}
 RAPID_CONNECT_CONFIG['iss'] = 'https://rapid.test.aaf.edu.au'

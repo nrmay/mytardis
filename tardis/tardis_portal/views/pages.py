@@ -39,6 +39,7 @@ from tardis.tardis_portal.shortcuts import render_response_index, \
     render_response_search
 from tardis.tardis_portal.views.utils import (
     _redirect_303, _add_protocols_and_organizations, HttpResponseSeeAlso)
+from tardis.default_settings import RAPID_CONNECT_CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -109,22 +110,13 @@ def use_multimodal_login(fn):
 
         c = fn(cxt, *args, **kwargs)
 
-        c['LOGIN_DEFAULT'] = getattr(settings,'LOGIN_FRONTEND_DEFAULT',
-                                     'local')
+        c['LOGIN_FRONTEND_DEFAULT'] = getattr(settings,
+                                        'LOGIN_FRONTEND_DEFAULT', 'local')
         c['LOGIN_MULTIMODAL'] = False
         c['LOCAL_ENABLED'] = False
         c['AAF_ENABLED'] = False
         c['AAFE_ENABLED'] = False
         c['CAS_ENABLED'] = False
-        c['SAML_ENABLED'] = False
-
-        # Add backward compatibility for RAPID_CONNECT_ENABLED setting.
-        try:
-            if settings.RAPID_CONNECT_ENABLED:
-                settings.LOGIN_FRONTENDS['aaf']['enabled'] = True
-                c['LOGIN_DEFAULT'] = 'aaf'
-        except Exception, e:
-            logger.debug("Settings RAPID_CONNECT_ENABLED failed with: %s" % e)
 
         # --- process dictionary: settings.LOGIN_FRONTENDS --- #
         enabled_count = 0
