@@ -35,7 +35,7 @@ def get_or_create_user(auth_method, user_id, email='', targetedID=''):
         created = True
         logger.debug('user(%s,%s) created!' % (auth_method, user_id))
 
-return (user, created)
+    return (user, created)
 
 
 def create_user(auth_method, user_id, email='', targetedID=''):
