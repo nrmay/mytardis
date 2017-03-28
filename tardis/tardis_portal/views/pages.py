@@ -32,11 +32,11 @@ from tardis.tardis_portal.auth.decorators import (
     has_experiment_download_access, has_experiment_write, has_dataset_write)
 from tardis.tardis_portal.auth.localdb_auth import django_user
 from tardis.tardis_portal.forms import ExperimentForm, DatasetForm
-from tardis.tardis_portal.models import Experiment, Dataset, DataFile, ObjectACL
+from tardis.tardis_portal.models import Experiment, Dataset, DataFile, \
+    ObjectACL
 from tardis.tardis_portal.shortcuts import render_response_index, \
     return_response_error, return_response_not_found, get_experiment_referer, \
     render_response_search
-from tardis.tardis_portal.util import dirname_with_id
 from tardis.tardis_portal.views.utils import (
     _redirect_303, _add_protocols_and_organizations, HttpResponseSeeAlso)
 from tardis.default_settings import RAPID_CONNECT_CONFIG
@@ -53,8 +53,8 @@ def site_routed_view(request, _default_view, _site_mappings, *args, **kwargs):
     default.
 
     The intention is to define {site: view} mappings in settings.py, and use
-    this wrapper view in urls.py to allow a single URL to be routed to different
-    views depending on the Site in the request.
+    this wrapper view in urls.py to allow a single URL to be routed to
+    different views depending on the Site in the request.
 
     :param request: a HTTP request object
     :type request: :class:`django.http.HttpRequest`
@@ -207,8 +207,8 @@ class IndexView(TemplateView):
         The index view, intended to render the front page of the MyTardis site
         listing recent experiments.
 
-        This default view can be overriden by defining a dictionary INDEX_VIEWS in
-        settings which maps SITE_ID's or domain names to an alternative view
+        This default view can be overriden by defining a dictionary INDEX_VIEWS
+        in settings which maps SITE_ID's or domain names to an alternative view
         function (similar to the DATASET_VIEWS or EXPERIMENT_VIEWS overrides).
 
         :param request: a HTTP request object
@@ -343,8 +343,8 @@ class DatasetView(TemplateView):
         The index view, intended to render the front page of the MyTardis site
         listing recent experiments.
 
-        This default view can be overriden by defining a dictionary INDEX_VIEWS in
-        settings which maps SITE_ID's or domain names to an alternative view
+        This default view can be overriden by defining a dictionary INDEX_VIEWS
+        in settings which maps SITE_ID's or domain names to an alternative view
         function (similar to the DATASET_VIEWS or EXPERIMENT_VIEWS overrides).
 
         :param request: a HTTP request object
@@ -396,11 +396,35 @@ def my_data(request):
     delegate to custom views depending on settings
     '''
 
+    owned_experiments = \
+        Experiment.safe.owned(request.user).order_by('-update_time')
+    shared_experiments = \
+        Experiment.safe.shared(request.user).order_by('-update_time')
+
+    try:
+        page_number = int(request.GET.get('page', '1'))
+    except ValueError:
+        page_number = 1
+
+    owned_paginator = \
+        Paginator(owned_experiments, settings.OWNED_EXPS_PER_PAGE)
+    try:
+        owned_exps_page = owned_paginator.page(page_number)
+    except (EmptyPage, InvalidPage):
+        owned_exps_page = owned_paginator.page(owned_paginator.num_pages)
+
+    shared_paginator = \
+        Paginator(shared_experiments, settings.SHARED_EXPS_PER_PAGE)
+    try:
+        shared_exps_page = shared_paginator.page(page_number)
+    except (EmptyPage, InvalidPage):
+        shared_exps_page = shared_paginator.page(owned_paginator.num_pages)
+
     c = {
-        'owned_experiments': Experiment.safe.owned(request.user)
-        .order_by('-update_time'),
-        'shared_experiments': Experiment.safe.shared(request.user)
-        .order_by('-update_time'),
+        'owned_experiments': owned_exps_page,
+        'owned_paginator': owned_paginator,
+        'shared_experiments': shared_exps_page,
+        'shared_paginator': shared_paginator
     }
     return HttpResponse(render_response_index(
         request, 'tardis_portal/my_data.html', c))
@@ -489,9 +513,10 @@ class ExperimentView(TemplateView):
         c['has_download_permissions'] = \
             authz.has_experiment_download_access(request, experiment.id)
         if request.user.is_authenticated():
-            c['is_owner'] = authz.has_experiment_ownership(request, experiment.id)
-            c['has_read_or_owner_ACL'] = authz.has_read_or_owner_ACL(request,
-                                                                     experiment.id)
+            c['is_owner'] = \
+                authz.has_experiment_ownership(request, experiment.id)
+            c['has_read_or_owner_ACL'] = \
+                authz.has_read_or_owner_ACL(request, experiment.id)
 
         # Enables UI elements for the publication form
         c['pub_form_enabled'] = 'tardis.apps.publication_forms' in \
@@ -528,10 +553,12 @@ class ExperimentView(TemplateView):
             {'name': 'Description',
              'viewfn': 'tardis.tardis_portal.views.experiment_description'},
             {'name': 'Metadata',
-             'viewfn': 'tardis.tardis_portal.views.retrieve_experiment_metadata'},
+             'viewfn':
+             'tardis.tardis_portal.views.retrieve_experiment_metadata'},
             {'name': 'Sharing', 'viewfn': 'tardis.tardis_portal.views.share'},
             {'name': 'Transfer Datasets',
-             'viewfn': 'tardis.tardis_portal.views.experiment_dataset_transfer'},
+             'viewfn':
+             'tardis.tardis_portal.views.experiment_dataset_transfer'},
         ]
         appnames = []
         appurls = []
@@ -540,7 +567,8 @@ class ExperimentView(TemplateView):
             try:
                 appnames.append(app['name'])
                 if 'viewfn' in app:
-                    appurls.append(reverse(app['viewfn'], args=[experiment.id]))
+                    appurls.append(reverse(app['viewfn'],
+                                   args=[experiment.id]))
                 elif 'url' in app:
                     appurls.append(app['url'])
             except:
@@ -640,6 +668,7 @@ def sftp_access(request):
     :param request: HttpRequest
     :return: HttpResponse
     """
+    from tardis.tardis_portal.download import make_mapper
     object_type = request.GET.get('object_type')
     object_id = request.GET.get('object_id')
     sftp_start_dir = ''
@@ -664,12 +693,13 @@ def sftp_access(request):
             if has_experiment_download_access(request, exp.id):
                 allowed_exps.append(exp)
         if len(allowed_exps) > 0:
+            path_mapper = make_mapper(settings.DEFAULT_PATH_MAPPER,
+                                      rootdir=None)
             exp = allowed_exps[0]
             path_parts = ['/home', request.user.username, 'experiments',
-                          dirname_with_id(exp.title, exp.id)]
+                          path_mapper(exp)]
             if dataset is not None:
-                path_parts.append(
-                    dirname_with_id(dataset.description, dataset.id))
+                path_parts.append(path_mapper(dataset))
             if datafile is not None:
                 path_parts.append(datafile.directory)
             sftp_start_dir = path.join(*path_parts)
