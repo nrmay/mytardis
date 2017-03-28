@@ -39,6 +39,7 @@ from tardis.tardis_portal.shortcuts import render_response_index, \
     render_response_search
 from tardis.tardis_portal.views.utils import (
     _redirect_303, _add_protocols_and_organizations, HttpResponseSeeAlso)
+from tardis.default_settings import RAPID_CONNECT_CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -92,43 +93,102 @@ def site_routed_view(request, _default_view, _site_mappings, *args, **kwargs):
     return view_fn(request, *args, **kwargs)
 
 
-def use_rapid_connect(fn):
+def use_multimodal_login(fn):
     """
-    A decorator that adds AAF Rapid Connect settings to a get_context_data
-    method.
+    A decorator that adds appropriate settings for login frontends to a
+    get_context_data method.
 
     :param fn: A get_context_data function/method.
     :type fn: types.FunctionType
-    :return: A get_context_data function that adds RAPID_CONNECT_* keys to its
+    :return: A get_context_data function that adds settings to its
              output context.
     :rtype: types.FunctionType
     """
 
-    def add_rapid_connect_settings(cxt, *args, **kwargs):
+    def add_multimodal_login_settings(cxt, *args, **kwargs):
+        logger.debug("start!")
+
         c = fn(cxt, *args, **kwargs)
 
-        c['RAPID_CONNECT_ENABLED'] = getattr(settings,
-                                             'RAPID_CONNECT_ENABLED', False)
+        c['LOGIN_FRONTEND_DEFAULT'] = getattr(settings,
+                                        'LOGIN_FRONTEND_DEFAULT', 'local')
+        c['LOGIN_MULTIMODAL'] = False
+        c['LOCAL_ENABLED'] = False
+        c['AAF_ENABLED'] = False
+        c['AAFE_ENABLED'] = False
+        c['CAS_ENABLED'] = False
 
-        if c['RAPID_CONNECT_ENABLED']:
-            c['RAPID_CONNECT_LOGIN_URL'] = \
-                getattr(settings, 'RAPID_CONNECT_CONFIG', {}).get(
-                    'authnrequest_url',
-                    None)
+        # --- process dictionary: settings.LOGIN_FRONTENDS --- #
+        enabled_count = 0
+        for key in settings.LOGIN_FRONTENDS:
+            label = settings.LOGIN_FRONTENDS[key]['label']
+            enabled = settings.LOGIN_FRONTENDS[key]['enabled']
 
-            if not c['RAPID_CONNECT_LOGIN_URL']:
-                raise ImproperlyConfigured(
-                    "RAPID_CONNECT_CONFIG['authnrequest_url'] must be "
-                    "configured in settings if RAPID_CONNECT_ENABLED is True.")
+            if enabled:
+                enabled_count += 1
+
+                if key == 'local':
+                    c['LOCAL_ENABLED'] = True
+                    c['LOCAL_DISPLAY'] = label
+
+                if key == 'aaf' or id == 'aafe':
+                    c['AAF_LOGIN_URL'] = settings.RAPID_CONNECT_CONFIG[
+                                                    'authnrequest_url']
+                    if not c['AAF_LOGIN_URL']:
+                        raise ImproperlyConfigured(
+                            "RAPID_CONNECT_CONFIG['authnrequest_url'] "
+                            "must be configured in settings "
+                            "if AAF or AAFE is enabled.")
+
+                    if key == 'aaf':
+                        c['AAF_ENABLED'] = True
+                        c['AAF_DISPLAY'] = label
+
+                    if key == 'aafe':
+                        c['AAFE_ENABLED'] = True
+                        c['AAFE_DISPLAY'] = label
+                        c['AAF_ENTITY_URL'] = settings.RAPID_CONNECT_CONFIG[
+                                                        'entityID']
+                        if not c['AAF_ENTITY_URL']:
+                            raise ImproperlyConfigured(
+                                "RAPID_CONNECT_CONFIG['entityID'] "
+                                "must be configured in settings "
+                                "if AAFE is enabled.")
+
+                if key == 'cas':
+                    c['CAS_ENABLED'] = True
+                    c['CAS_DISPLAY'] = label
+                    c['CAS_SERVER_URL'] = settings.CAS_SERVER_URL
+                    c['CAS_SERVICE_URL'] = settings.CAS_SERVICE_URL
+
+                    if not c['CAS_SERVER_URL']:
+                        raise ImproperlyConfigured("CAS_SERVER_URL "
+                            "must be configured in settings if CAS is enabled.")
+                    if not c['CAS_SERVICE_URL']:
+                        raise ImproperlyConfigured("CAS_SERVICE_URL "
+                            "must be configured in settings if CAS is enabled.")
+
+        # --- turn on multimodal dropdown list --- #
+        if enabled_count > 1:
+            c['LOGIN_MULTIMODAL'] = True
+
         return c
 
-    return add_rapid_connect_settings
+    return add_multimodal_login_settings
+
+
+@use_multimodal_login
+def get_multimodal_context_data(cxt, **kwargs):
+    ''' Bridge for the decorator to be called using a context parameter.
+    '''
+    logger.debug("start!")
+    return cxt
 
 
 class IndexView(TemplateView):
     template_name = 'tardis_portal/index.html'
 
-    @use_rapid_connect
+    @use_multimodal_login
     def get_context_data(self, request, **kwargs):
         """
         Prepares the values to be passed to the default index view - a list of
@@ -339,6 +399,9 @@ def about(request):
              settings, 'CUSTOM_ABOUT_SECTION_TEMPLATE',
              'tardis_portal/about_include.html'),
          }
+
+    c = get_multimodal_context_data(c)
+
     return HttpResponse(render_response_index(request,
                         'tardis_portal/about.html', c))
 
@@ -600,6 +663,9 @@ def stats(request):
         'datafile_count': DataFile.objects.all().count(),
         'datafile_size': datafile_size,
     }
+
+    c = get_multimodal_context_data(c)
+
     return HttpResponse(render_response_index(request,
                         'tardis_portal/stats.html', c))
 
@@ -609,6 +675,9 @@ def user_guide(request):
         'user_guide_location': getattr(
             settings, 'CUSTOM_USER_GUIDE', 'user_guide/index.html'),
     }
+
+    c = get_multimodal_context_data(c)
+
     return HttpResponse(render_response_index(request,
                         'tardis_portal/user_guide.html', c))
 
@@ -677,6 +746,7 @@ def sftp_access(request):
 
 
 @login_required
+@use_multimodal_login
 def facility_overview(request):
     '''
     summary of experiments in a facility
@@ -691,6 +761,9 @@ def public_data(request):
     '''
     c = {'public_experiments':
          Experiment.safe.public().order_by('-update_time'), }
+
+    c = get_multimodal_context_data(c)
+
     return HttpResponse(render_response_index(
         request, 'tardis_portal/public_data.html', c))
 
@@ -742,6 +815,8 @@ def experiment_list_public(request):
         'experiments': Experiment.objects.exclude(private_filter)
                                          .order_by('-update_time'),
     }
+
+    c = get_multimodal_context_data(c)
 
     return HttpResponse(render_response_search(request,
                         'tardis_portal/experiment/list_public.html', c))

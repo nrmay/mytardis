@@ -104,6 +104,9 @@ class UserAuthentication(models.Model):
         self.CHOICES = ()
         for authMethods in settings.AUTH_PROVIDERS:
             self.CHOICES += ((authMethods[0], authMethods[1]),)
+        for key, values in settings.LOGIN_FRONTENDS.iteritems():
+            self.CHOICES += ((key, values['label']),)
+
         self._comparisonChoicesDict = dict(self.CHOICES)
 
         super(UserAuthentication, self).__init__(*args, **kwargs)

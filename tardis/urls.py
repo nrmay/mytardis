@@ -55,6 +55,13 @@ rapidconnect_urls = patterns(
     (r'^auth/jwt$', 'rcauth'),
 )
 
+cas_urls = patterns(
+    'django_cas_ng.views',
+    (r'^login/$', 'login'),
+    (r'^logout/$', 'logout'),
+    (r'^callback/$', 'callback'),
+)
+
 overridable_urls = patterns(
     '',
     url(r'^$', site_routed_view, {'_default_view': IndexView.as_view(),
@@ -398,12 +405,15 @@ urlpatterns = patterns(
     # Display Views
     (r'^display/', include(display_urls)),
 
-    # Login/out
+    # Local authentication
     (r'^login/$', 'tardis.tardis_portal.views.login'),
     url(r'^logout/$', logout, {'next_page': '/'}, name='logout'),
 
     # Rapid Connect
     (r'^rc/', include(rapidconnect_urls)),
+
+    # Central Authentication Service
+    (r'^cas/', include(cas_urls)),
 
     # Admin
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
