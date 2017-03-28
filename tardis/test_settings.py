@@ -101,7 +101,6 @@ LDAP_GROUP_BASE = 'ou=Group, ' + LDAP_BASE
 LOGIN_FRONTENDS['aaf']['enabled'] = True
 LOGIN_FRONTENDS['aafe']['enabled'] = True
 LOGIN_FRONTENDS['cas']['enabled'] = True
-LOGIN_FRONTENDS['http']['enabled'] = True
 LOGIN_FRONTENDS['local']['enabled'] = True
 LOGIN_HOME_ORGANIZATION = 'dummy.edu'
 
