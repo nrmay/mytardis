@@ -64,7 +64,7 @@ ACCOUNT_ACTIVATION_DAYS = 3
 ''' Sets the front-end used by the default login button on the portal_template.
 '''
 LOGIN_FRONTEND_DEFAULT = "local"
- 
+
 ''' LOGIN_FRONTENDS defines the different methods that are supported by the
 mutli-modal login interface. By default only the 'mytardis' login is enabled.
 Fields include: id, display label, enabled flag, and .

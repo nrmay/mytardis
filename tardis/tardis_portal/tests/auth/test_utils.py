@@ -141,10 +141,10 @@ class GetOrCreateUserTestCase (TestCase):
         attributes['edupersontargetedid'] = targetedID
         session = self.client.session
         session['attributes'] = attributes
-        request.session = session      
+        request.session = session
 
         try:
-            pass 
+            pass
             # rcauth(request)
         except Exception as ex:
             traceback.print_exc()

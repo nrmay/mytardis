@@ -19,7 +19,8 @@ class AuthenticationTestCase(TestCase):
         self.manageAuthMethodsUrl = "/accounts/manage_auth_methods/"
 
         self.user = User.objects.create_user('test', '', 'test')
-        self.user.user_permissions.add(Permission.objects.get(codename='change_userauthentication'))
+        self.user.user_permissions.add(Permission.objects.get(
+                                codename='change_userauthentication'))
 
     def testSimpleAuthenticate(self):
         response = self.client.post(self.loginUrl, {'username': 'test',

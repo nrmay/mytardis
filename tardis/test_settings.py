@@ -97,9 +97,9 @@ LDAP_USER_BASE = 'ou=People, ' + LDAP_BASE
 LDAP_GROUP_BASE = 'ou=Group, ' + LDAP_BASE
 
 # enable all auth methods
-LOGIN_FRONTENDS['aaf']['enabled'] = True
-LOGIN_FRONTENDS['aafe']['enabled'] = True
-LOGIN_FRONTENDS['cas']['enabled'] = True
+LOGIN_FRONTENDS['aaf']['enabled'] = False
+LOGIN_FRONTENDS['aafe']['enabled'] = False
+LOGIN_FRONTENDS['cas']['enabled'] = False
 LOGIN_FRONTENDS['local']['enabled'] = True
 LOGIN_HOME_ORGANIZATION = 'dummy.edu'
 
