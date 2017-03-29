@@ -116,7 +116,7 @@ class GetOrCreateUserTestCase (TestCase):
         except Exception as ex:
             traceback.print_exc()
             self.fail('cas_callback() raised exception: %s[%s]' % (type(ex).__name__, ex.args[0]))
-        
+
         #self.assertTrue(self._verifyUser(method, user_id), 'cas user not verified!')
         return
 
@@ -163,5 +163,5 @@ class GetOrCreateUserTestCase (TestCase):
     Test creation of AAFE user
     '''
     def testAAFEUser(self):
-        
+
         return
