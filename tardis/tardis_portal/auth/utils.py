@@ -19,6 +19,8 @@ def get_or_create_user(auth_method, user_id, email='', targetedID=''):
     :param user_id: the user identifier for this user.
     :param email: the user's email address.
     :param targetedID: the unique key for this user returned by AAF.
+    :return return the user and whether it was created in this method
+    :rtype User, Boolean
     """
     logger.debug('start!')
     try:
@@ -45,6 +47,8 @@ def create_user(auth_method, user_id, email='', targetedID=''):
     :param user_id: the user identifier for this user.
     :param email: the user's email address.
     :param targetedID: the unique key for this user returned by AAF.
+    :return return the created User
+    :rtype User
     """
     logger.debug('start!')
     # length of the maximum username
