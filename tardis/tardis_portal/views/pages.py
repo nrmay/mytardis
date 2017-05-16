@@ -181,6 +181,7 @@ class IndexView(TemplateView):
 
         :param request: a HTTP request object
         :type request: :class:`django.http.HttpRequest`
+        :param dict kwargs: kwargs
         :return: A dictionary of values for the view/template.
         :rtype: dict
         """
@@ -213,6 +214,8 @@ class IndexView(TemplateView):
 
         :param request: a HTTP request object
         :type request: :class:`django.http.HttpRequest`
+        :param list args:
+        :param dict kwargs:
         :return: The Django response object
         :rtype: :class:`django.http.HttpResponse`
         """
@@ -273,6 +276,7 @@ class DatasetView(TemplateView):
         :type request: :class:`django.http.HttpRequest`
         :param dataset: the Dataset model instance
         :type dataset: tardis.tardis_portal.models.dataset.Dataset
+        :param dict kwargs:
         :return: A dictionary of values for the view/template.
         :rtype: dict
         """
@@ -349,6 +353,8 @@ class DatasetView(TemplateView):
 
         :param request: a HTTP request object
         :type request: :class:`django.http.HttpRequest`
+        :param list args:
+        :param dict kwargs:
         :return: The Django response object
         :rtype: :class:`django.http.HttpResponse`
         """
@@ -447,6 +453,7 @@ def _resolve_view(view_function_or_string):
     :type view_function_or_string: basestring | types.FunctionType
     :return: The view function
     :rtype: types.FunctionType
+    :raises TypeError:
     """
     if isinstance(view_function_or_string, basestring):
         x = view_function_or_string.split('.')
@@ -501,6 +508,7 @@ class ExperimentView(TemplateView):
         :type request: :class:`django.http.HttpRequest`
         :param experiment: the experiment model instance
         :type experiment: tardis.tardis_portal.models.experiment.Experiment
+        :param dict kwargs: kwargs
         :return: A dictionary of values for the view/template.
         :rtype: dict
         """
@@ -596,7 +604,10 @@ class ExperimentView(TemplateView):
 
         :param request: a HTTP Request instance
         :type request: :class:`django.http.HttpRequest`
-        :param experiment_id: the ID of the experiment
+        :param list args:
+        :param dict kwargs:
+        in kwargs: param int experiment_id: the ID of the experiment
+        :returns: an HttpResponse
         :rtype: :class:`django.http.HttpResponse`
         """
 
@@ -665,8 +676,9 @@ def user_guide(request):
 def sftp_access(request):
     """
     Show dynamically generated instructions on how to connect to SFTP
-    :param request: HttpRequest
+    :param Request request: HttpRequest
     :return: HttpResponse
+    :rtype: HttpResponse
     """
     from tardis.tardis_portal.download import make_mapper
     object_type = request.GET.get('object_type')
@@ -692,7 +704,7 @@ def sftp_access(request):
         for exp in exps:
             if has_experiment_download_access(request, exp.id):
                 allowed_exps.append(exp)
-        if len(allowed_exps) > 0:
+        if allowed_exps:
             path_mapper = make_mapper(settings.DEFAULT_PATH_MAPPER,
                                       rootdir=None)
             exp = allowed_exps[0]
@@ -747,8 +759,7 @@ def public_data(request):
 def experiment_index(request):
     if request.user.is_authenticated():
         return redirect('tardis_portal.experiment_list_mine')
-    else:
-        return redirect('tardis_portal.experiment_list_public')
+    return redirect('tardis_portal.experiment_list_public')
 
 
 @login_required
@@ -808,8 +819,8 @@ def create_experiment(request,
     :type request: :class:`django.http.HttpRequest`
     :param template_name: the path of the template to render
     :type template_name: string
+    :returns: an HttpResponse
     :rtype: :class:`django.http.HttpResponse`
-
     """
 
     c = {
@@ -866,8 +877,8 @@ def edit_experiment(request, experiment_id,
     :type experiment_id: str | int
     :param template: the path of the template to render
     :type template: str | int
+    :returns: an HttpResponse
     :rtype: :class:`django.http.HttpResponse`
-
     """
     experiment = Experiment.objects.get(id=experiment_id)
 

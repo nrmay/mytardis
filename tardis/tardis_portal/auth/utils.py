@@ -73,6 +73,7 @@ def create_user(auth_method, user_id, email='', targetedID=''):
     user = User.objects.create_user(username=unique_username,
                                     password=password,
                                     email=email)
+
     for group_name in settings.NEW_USER_INITIAL_GROUPS:
         try:
             group = Group.objects.get(name=group_name)
