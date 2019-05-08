@@ -128,7 +128,7 @@
                             <a class="btn{% if datafile.is_online %}" title="Download"
                                {% else %} archived-file disabled"{% endif %}
                                href="{{ datafile.get_download_url }}">
-                                <i class="fa fa-download-alt fa-lg"></i>
+                                <i class="fa fa-download fa-lg"></i>
                             </a>
                         {% endif %}
                         {% if has_write_permissions and not immutable %}

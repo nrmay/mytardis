@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime
 
 from django.conf import settings
@@ -10,12 +12,14 @@ from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+logger = logging.getLogger(__name__)
 
 class UserProfile(models.Model):
     """
     UserProfile class is an extension to the Django standard user model.
 
     :attribute isDjangoAccount: is the user a local DB user
+    :attribute rapidConnectEduPersonTargetedID: the targeted id provided by AAF
     :attribute user: a foreign key to the
        :class:`django.contrib.auth.models.User`
     """
@@ -73,9 +77,9 @@ class GroupAdmin(models.Model):
     """GroupAdmin links the Django User and Group tables for group
     administrators
 
-    :attribute user: a forign key to the
+    :attribute user: a foreign key to the
        :class:`django.contrib.auth.models.User`
-    :attribute group: a forign key to the
+    :attribute group: a foreign key to the
        :class:`django.contrib.auth.models.Group`
     """
 
@@ -89,7 +93,6 @@ class GroupAdmin(models.Model):
         return '%s: %s' % (self.user.username, self.group.name)
 
 
-# TODO: Generalise auth methods
 class UserAuthentication(models.Model):
     CHOICES = ()
     userProfile = models.ForeignKey(UserProfile)
@@ -104,7 +107,16 @@ class UserAuthentication(models.Model):
         self.CHOICES = ()
         for authMethods in settings.AUTH_PROVIDERS:
             self.CHOICES += ((authMethods[0], authMethods[1]),)
+        # add external authentication methods
+        for key, values in settings.LOGIN_FRONTENDS.iteritems():
+            if values['enabled']:
+                self.CHOICES += ((key, values['label']),)
+
         self._comparisonChoicesDict = dict(self.CHOICES)
+        # print full list
+        #logger.debug('Authentication CHOICES...')
+        #for key, label in self.CHOICES:
+        #    logger.debug('key[%s] label[%s]' % (key, label))
 
         super(UserAuthentication, self).__init__(*args, **kwargs)
 
@@ -113,7 +125,6 @@ class UserAuthentication(models.Model):
 
     def __unicode__(self):
         return self.username + ' - ' + self.getAuthMethodDescription()
-
 
 # this is currently unused, but is the state I would like to reach, ie.
 # objects for auth entities, not strings.

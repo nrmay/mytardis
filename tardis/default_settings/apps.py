@@ -27,4 +27,5 @@ INSTALLED_APPS = (
     'tardis.apps.publication_forms',
     'tardis.apps.oaipmh',
     # 'tardis.apps.push_to',
+    'django_cas_ng',
 )
