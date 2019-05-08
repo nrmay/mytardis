@@ -32,7 +32,6 @@ AUTH_PROVIDERS = (
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'tardis.tardis_portal.auth.authorisation.ACLAwareBackend',
-    'django_cas_ng.backends.CASBackend',
 )
 
 MANAGE_ACCOUNT_ENABLED = True
@@ -70,10 +69,10 @@ mutli-modal login interface. By default only the 'mytardis' login is enabled.
 Fields include: id, display label, enabled flag, and .
 '''
 LOGIN_FRONTENDS = {
-    'local': {'label':'Local', 'enabled':True,  'groups': set()},
-    'aaf':   {'label':'AAF',   'enabled':False, 'groups': set()},
-    'aafe':  {'label':'Home',  'enabled':False, 'groups': set()},
-    'cas':   {'label':'CAS',   'enabled':False, 'groups': set()},
+    'local':   {'label':'Local', 'enabled':True,  'groups': set()},
+    'aaf':     {'label':'AAF',   'enabled':False, 'groups': set()},
+    'aafe':    {'label':'Home',  'enabled':False, 'groups': set()},
+    'saml2':   {'label':'SAML2', 'enabled':False, 'groups': set()},
 }
 
 ''' The home organization is used to strip the domain from email addresses to
@@ -81,17 +80,38 @@ identify the organizational user id.
 '''
 LOGIN_HOME_ORGANIZATION = ''
 
-# CAS Server default settings
-''' CAS SERVER configuration parameters...
-server_url: the base url of the CAS Service.
-service_url: the base url of the mytardis instance.
-logout_completely: set to false to enable single sign-on (sso) sessions.
-'''
-CAS_SERVER_URL = 'https//<url of the CAS Service>/'
-CAS_SERVICE_URL = 'http://<url of the tardis instance>/'
-CAS_LOGOUT_COMPLETELY = True
-CAS_IGNORE_REDIRECT = True
-CAS_IGNORE_REFERRER = True
+# SAML2 Server default settings
+SAML2_AUTH = {
+    # Metadata is required, choose either remote url or local file path
+    'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
+    'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
+
+    # Optional settings below
+    'DEFAULT_NEXT_URL': '/admin',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
+    'CREATE_USER': 'TRUE', # Create a new Django user when a new user logs in. Defaults to True.
+    'NEW_USER_PROFILE': {
+        'USER_GROUPS': [],  # The default group name when a new user logs in
+        'ACTIVE_STATUS': True,  # The default active status for new users
+        'STAFF_STATUS': True,  # The staff status for new users
+        'SUPERUSER_STATUS': False,  # The superuser status for new users
+    },
+    'ATTRIBUTES_MAP': {  # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
+        'email': 'Email',
+        'username': 'UserName',
+        'first_name': 'FirstName',
+        'last_name': 'LastName',
+    },
+    'TRIGGER': {
+        'CREATE_USER': 'path.to.your.new.user.hook.method',
+        'BEFORE_LOGIN': 'path.to.your.login.hook.method',
+    },
+    'ASSERTION_URL': 'https://mysite.com', # Custom URL to validate incoming SAML requests against
+    'ENTITY_ID': 'https://mysite.com/saml2_auth/acs/', # Populates the Issuer element in authn request
+    'NAME_ID_FORMAT': '', # FormatString, # Sets the Format property of authn NameIDPolicy element
+    'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
+    'FRONTEND_URL': 'https://myfrontendclient.com', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
+}
+
 
 # Show the Rapid Connect login button.
 ''' AAF RAPID CONNECT configuration parameters...

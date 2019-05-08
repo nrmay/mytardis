@@ -13,6 +13,7 @@ from django.http import HttpResponse
 from registration.backends.default.views import RegistrationView
 
 import django_jasmine.urls
+import django_saml2_auth.views
 
 from tastypie.api import Api
 from tastypie.resources import Resource
@@ -412,10 +413,7 @@ urlpatterns = patterns(
     # Rapid Connect
     (r'^rc/', include(rapidconnect_urls)),
 
-    # CAS
-    (r'^cas/', include(cas_urls)),
-
-    # Admin
+   # Admin
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
 
