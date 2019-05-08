@@ -46,4 +46,3 @@ rdflib==4.2.2
 six==1.10.0
 wsgiref==0.1.2
 python-ldap==2.4.27
-xmlsec1
