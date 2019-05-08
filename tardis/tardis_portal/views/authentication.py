@@ -23,7 +23,6 @@ from django.shortcuts import redirect
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.dispatch import receiver
-from django_cas_ng.signals import cas_user_authenticated
 
 from tardis.tardis_portal.auth import auth_service
 from tardis.tardis_portal.auth.utils import get_or_create_user
@@ -36,31 +35,6 @@ from tardis.tardis_portal.views.utils import _redirect_303
 from tardis.tardis_portal.views.pages import get_multimodal_context_data
 
 logger = logging.getLogger(__name__)
-
-
-@receiver(cas_user_authenticated)
-def cas_callback(sender, **kwargs):
-    logger.debug('_cas_callback() start!')
-    for key,value in kwargs.iteritems():
-        logger.debug('kwargs[%s] = %s' % ( str(key), str(value) ))
-        if key == 'user':
-            try:
-                auth_method = 'cas'
-                home_email = '%s@%s' % (value, settings.LOGIN_HOME_ORGANIZATION)
-                logger.debug("auth_method[%s] user_id[%s] email[%s]" % (
-                                        auth_method, value, home_email))
-                user, created = get_or_create_user(auth_method, value,
-                                                   email=home_email)
-                if created:
-                    logger.debug('user created = %s' % str(user))
-                else:
-                    if user is None:
-                        logger.debug('user creation failed!')
-            except Exception, e:
-                logger.error("get_or_create_user['%s'] failed with %s" % (
-                             value, e))
-
-    return
 
 @csrf_exempt
 def rcauth(request):
