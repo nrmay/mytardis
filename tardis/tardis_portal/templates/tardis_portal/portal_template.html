@@ -196,8 +196,8 @@
                   		href={{ AAF_LOGIN_URL }}
               	{% elif LOGIN_FRONTEND_DEFAULT|lower = 'aafe' %}
                   		href={{ AAF_LOGIN_URL }}?entityID={{ AAF_ENTITY_URL }}
-              	{% elif LOGIN_FRONTEND_DEFAULT|lower = 'cas' %}
-                  		href={% url 'django_cas_ng.views.login' %}
+              	{% elif LOGIN_FRONTEND_DEFAULT|lower = 'saml2' %}
+                  		href="/saml2/login"
               	{% else %}
                   		href="{% url 'tardis.tardis_portal.views.login' %}"
               	{% endif %}
@@ -239,14 +239,14 @@
                 	</a>
                   </li>
                   {% endif %}
-              	  {% if CAS_ENABLED and LOGIN_FRONTEND_DEFAULT|lower != 'cas' %}
+              	  {% if SAML2_ENABLED and LOGIN_FRONTEND_DEFAULT|lower != 'saml2' %}
         	  	  <li>      
               	  	<a id="login-button"   
 						class="btn btn-info btn-block"
 				   		style="width: 80px; text-align: center;"
-				   		href={% url 'django_cas_ng.views.login' %} >
+				   		href="/saml2/login" >
                   		<i class="icon-signin"></i>
-                  		{{ CAS_DISPLAY }}
+                  		{{ SAML2_DISPLAY }}
                 	</a>
                   </li>
                   {% endif %}
@@ -381,7 +381,7 @@
 	</div>
 	<div class="span6">
 	  <div class="pull-right">
-	  Powered by <a href="https://github.com/mytardis/mytardis">MyTardis</a>
+	  Powered by <a href="https://github.com/nrmay/mytardis">MyTardis</a>
 	  </div>
 	</div>
       </div>

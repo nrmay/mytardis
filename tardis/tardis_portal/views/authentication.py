@@ -33,8 +33,25 @@ from tardis.tardis_portal.models import JTI, UserProfile, UserAuthentication
 from tardis.tardis_portal.shortcuts import render_response_index
 from tardis.tardis_portal.views.utils import _redirect_303
 from tardis.tardis_portal.views.pages import get_multimodal_context_data
+from UserDict import UserDict
 
 logger = logging.getLogger(__name__)
+
+
+def saml2_callback(UserDict):
+    logger.debug('_saml2_callback() start!')
+    logger.debug('        email:', UserDict['mail'])
+    logger.debug('     username:', UserDict['uid'])
+    logger.debug('   first_name:', UserDict['givenName'])
+    logger.debug('    last_name:', UserDict['sn'])
+    logger.debug('   department:', UserDict['Department'])
+    logger.debug('  affiliation:', UserDict['seduPersonAffiliationn'])
+    
+    # Create UserProfile
+    
+    
+
+    return
 
 @csrf_exempt
 def rcauth(request):

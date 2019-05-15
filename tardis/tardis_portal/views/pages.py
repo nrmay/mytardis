@@ -114,7 +114,7 @@ def use_multimodal_login(fn):
         c['LOCAL_ENABLED'] = False
         c['AAF_ENABLED'] = False
         c['AAFE_ENABLED'] = False
-        c['CAS_ENABLED'] = False
+        c['SAML2_ENABLED'] = False
 
         enabled_count = 0
         for key in settings.LOGIN_FRONTENDS:
@@ -153,9 +153,9 @@ def use_multimodal_login(fn):
                               "must be configured in settings "
                               "if AAFE is enabled.")
 
-                if key == 'cas':
-                    c['CAS_ENABLED'] = True
-                    c['CAS_DISPLAY'] = label
+                if key == 'saml2':
+                    c['SAML2_ENABLED'] = True
+                    c['SAML2_DISPLAY'] = label
 
         if enabled_count > 1:
             c['LOGIN_MULTIMODAL'] = True

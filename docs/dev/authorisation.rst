@@ -21,6 +21,10 @@ the custom object level permission framework described below.
 Using the Central Authentication Service (CAS) Backend
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+To use a SAML2 Server for authentication the following settings must be overidden:
+...
+
+
 To use a CAS Server for authentication the following settings must be overridden:
 
 .. code-block:: python

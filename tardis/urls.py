@@ -56,6 +56,12 @@ rapidconnect_urls = patterns(
     (r'^auth/jwt$', 'rcauth'),
 )
 
+saml2_urls = patterns(
+    (r'^/', include('django_saml2_auth.urls')),
+    (r'^signin/$', django_saml2_auth.views.signin),
+    (r'^signout/$', django_saml2_auth.views.signout),
+)
+ 
 cas_urls = patterns(
     'django_cas_ng.views',
     (r'^login/$','login'),
@@ -412,6 +418,9 @@ urlpatterns = patterns(
 
     # Rapid Connect
     (r'^rc/', include(rapidconnect_urls)),
+
+    # SAML2
+    (r'^saml2/', include(saml2_urls)),
 
    # Admin
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
