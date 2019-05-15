@@ -69,10 +69,10 @@ mutli-modal login interface. By default only the 'mytardis' login is enabled.
 Fields include: id, display label, enabled flag, and .
 '''
 LOGIN_FRONTENDS = {
-    'local':   {'label':'Local', 'enabled':True,  'groups': set()},
-    'aaf':     {'label':'AAF',   'enabled':False, 'groups': set()},
-    'aafe':    {'label':'Home',  'enabled':False, 'groups': set()},
-    'saml2':   {'label':'SAML2', 'enabled':False, 'groups': set()},
+    'local': {'label':'Local', 'enabled':True,  'groups': set()},
+    'aaf': {'label':'AAF', 'enabled':False, 'groups': set()},
+    'aafe': {'label':'Home', 'enabled':False, 'groups': set()},
+    'saml2': {'label':'SAML2', 'enabled':False, 'groups': set()},
 }
 
 ''' The home organization is used to strip the domain from email addresses to
@@ -85,12 +85,11 @@ SAML2_AUTH = {
     # Metadata is required, choose either remote url or local file path
     'METADATA_AUTO_CONF_URL': '[The auto(dynamic) metadata configuration URL of SAML2]',
     # 'METADATA_LOCAL_FILE_PATH': '[The metadata configuration file path]',
-    
+
     # override the ssl certificate validation
     'DISABLE_SSL_CERTIFICATE_VALIDATION': False,
     'AUTHN_REQUESTS_SIGNED': False,
     'WANT_RESPONSE_SIGNED': False,
-    
 
     # Optional settings below
     'DEFAULT_NEXT_URL': '/',  # Custom target redirect URL after the user get logged in. Default to /admin if not set. This setting will be overwritten if you have parameter ?next= specificed in the login URL.
@@ -117,7 +116,6 @@ SAML2_AUTH = {
     'USE_JWT': False, # Set this to True if you are running a Single Page Application (SPA) with Django Rest Framework (DRF), and are using JWT authentication to authorize client users
     'FRONTEND_URL': '', # Redirect URL for the client if you are using JWT auth with DRF. See explanation below
 }
-
 
 # Show the Rapid Connect login button.
 ''' AAF RAPID CONNECT configuration parameters...

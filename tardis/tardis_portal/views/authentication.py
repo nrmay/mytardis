@@ -3,6 +3,7 @@ views that have to do with authentication
 """
 from urlparse import urlparse
 from httplib import CREATED
+from UserDict import UserDict
 
 import logging
 import sys
@@ -33,23 +34,20 @@ from tardis.tardis_portal.models import JTI, UserProfile, UserAuthentication
 from tardis.tardis_portal.shortcuts import render_response_index
 from tardis.tardis_portal.views.utils import _redirect_303
 from tardis.tardis_portal.views.pages import get_multimodal_context_data
-from UserDict import UserDict
 
 logger = logging.getLogger(__name__)
 
 
 def saml2_callback(UserDict):
     logger.debug('_saml2_callback() start!')
-    logger.debug('        email:', UserDict['mail'])
-    logger.debug('     username:', UserDict['uid'])
-    logger.debug('   first_name:', UserDict['givenName'])
-    logger.debug('    last_name:', UserDict['sn'])
-    logger.debug('   department:', UserDict['Department'])
-    logger.debug('  affiliation:', UserDict['seduPersonAffiliationn'])
-    
+    logger.debug('        email: %s', UserDict['mail'])
+    logger.debug('     username: %s', UserDict['uid'])
+    logger.debug('   first_name: %s', UserDict['givenName'])
+    logger.debug('    last_name: %s', UserDict['sn'])
+    logger.debug('   department: %s', UserDict['Department'])
+    logger.debug('  affiliation: %s', UserDict['seduPersonAffiliationn'])
+
     # Create UserProfile
-    
-    
 
     return
 

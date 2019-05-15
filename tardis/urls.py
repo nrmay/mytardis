@@ -61,7 +61,7 @@ saml2_urls = patterns(
     (r'^signin/$', django_saml2_auth.views.signin),
     (r'^signout/$', django_saml2_auth.views.signout),
 )
- 
+
 cas_urls = patterns(
     'django_cas_ng.views',
     (r'^login/$','login'),
