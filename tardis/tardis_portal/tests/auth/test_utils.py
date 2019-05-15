@@ -9,7 +9,7 @@ from django.conf import settings
 
 from tardis.tardis_portal.auth.utils import get_or_create_user
 from tardis.tardis_portal.models import UserProfile, UserAuthentication
-from tardis.tardis_portal.views.authentication import cas_callback, rcauth
+from tardis.tardis_portal.views.authentication import rcauth
 
 logger = logging.getLogger(__name__)
 
@@ -99,25 +99,6 @@ class GetOrCreateUserTestCase (TestCase):
         self.assertTrue(created, 'returned created flag is False')
         self.assertTrue(self._verifyUser(method,user_id), 'localdb user not verified!')
 
-        return
-
-
-    '''
-    Test creation of CAS user
-    '''
-    def testCASUser(self):
-        method = 'cas'
-        user_id = 'casUser1'
-
-        # create user
-        try:
-            pass
-            #cas_callback(self.__class__, user=user_id)
-        except Exception as ex:
-            traceback.print_exc()
-            self.fail('cas_callback() raised exception: %s[%s]' % (type(ex).__name__, ex.args[0]))
-
-        #self.assertTrue(self._verifyUser(method, user_id), 'cas user not verified!')
         return
 
 
