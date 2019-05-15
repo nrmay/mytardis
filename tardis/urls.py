@@ -55,12 +55,6 @@ rapidconnect_urls = patterns(
     (r'^auth/jwt$', 'rcauth'),
 )
 
-cas_urls = patterns(
-    'django_cas_ng.views',
-    (r'^login/$','login'),
-    (r'^logout/$','logout'),
-    (r'^callback/$','callback'),
-)
 
 overridable_urls = patterns(
     '',
