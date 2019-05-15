@@ -73,25 +73,13 @@ LOGIN_FRONTENDS = {
     'local': {'label':'Local', 'enabled':True,  'groups': set()},
     'aaf':   {'label':'AAF',   'enabled':False, 'groups': set()},
     'aafe':  {'label':'Home',  'enabled':False, 'groups': set()},
-    'cas':   {'label':'CAS',   'enabled':False, 'groups': set()},
+    'saml2': {'label':'SAML2', 'enabled':False, 'groups': set()},
 }
 
 ''' The home organization is used to strip the domain from email addresses to
 identify the organizational user id.
 '''
 LOGIN_HOME_ORGANIZATION = ''
-
-# CAS Server default settings
-''' CAS SERVER configuration parameters...
-server_url: the base url of the CAS Service.
-service_url: the base url of the mytardis instance.
-logout_completely: set to false to enable single sign-on (sso) sessions.
-'''
-CAS_SERVER_URL = 'https//<url of the CAS Service>/'
-CAS_SERVICE_URL = 'http://<url of the tardis instance>/'
-CAS_LOGOUT_COMPLETELY = True
-CAS_IGNORE_REDIRECT = True
-CAS_IGNORE_REFERRER = True
 
 # Show the Rapid Connect login button.
 ''' AAF RAPID CONNECT configuration parameters...
