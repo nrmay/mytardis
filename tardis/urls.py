@@ -406,9 +406,6 @@ urlpatterns = patterns(
     # Rapid Connect
     (r'^rc/', include(rapidconnect_urls)),
 
-    # CAS
-    (r'^cas/', include(cas_urls)),
-
     # Admin
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
