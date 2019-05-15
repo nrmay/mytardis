@@ -62,12 +62,6 @@ saml2_urls = patterns(
     (r'^signout/$', django_saml2_auth.views.signout),
 )
 
-cas_urls = patterns(
-    'django_cas_ng.views',
-    (r'^login/$','login'),
-    (r'^logout/$','logout'),
-    (r'^callback/$','callback'),
-)
 
 overridable_urls = patterns(
     '',
