@@ -99,7 +99,7 @@ LDAP_GROUP_BASE = 'ou=Group, ' + LDAP_BASE
 # enable all auth methods
 LOGIN_FRONTENDS['aaf']['enabled'] = False
 LOGIN_FRONTENDS['aafe']['enabled'] = False
-LOGIN_FRONTENDS['cas']['enabled'] = False
+LOGIN_FRONTENDS['saml2']['enabled'] = False
 LOGIN_FRONTENDS['local']['enabled'] = True
 LOGIN_HOME_ORGANIZATION = 'dummy.edu'
 
