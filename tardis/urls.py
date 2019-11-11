@@ -62,7 +62,6 @@ saml2_urls = patterns(
     (r'^signout/$', django_saml2_auth.views.signout),
 )
 
-
 overridable_urls = patterns(
     '',
     url(r'^$', site_routed_view, {'_default_view': IndexView.as_view(),
@@ -416,7 +415,7 @@ urlpatterns = patterns(
     # SAML2
     (r'^saml2/', include(saml2_urls)),
 
-   # Admin
+    # Admin
     (r'^admin/doc/', include('django.contrib.admindocs.urls')),
     (r'^admin/', include(admin.site.urls)),
 
